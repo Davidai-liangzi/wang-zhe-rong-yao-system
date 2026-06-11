@@ -10,6 +10,14 @@ public class SearchService {
 
     /** Find player by username (case-insensitive) */
     public static void findPlayerByName(GameData data, String name) {
+        if (data == null || data.getPlayers() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
+        if (name == null) {
+            System.out.println("Player not found: (null input)");
+            return;
+        }
         List<Player> players = data.getPlayers();
 
         for (Player p : players) {
@@ -58,9 +66,18 @@ public class SearchService {
 
     /** Find team by name, display members, average rank, total matches, win rate, top player */
     public static void findTeamByName(GameData data, String name) {
+        if (data == null || data.getTeams() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
+        if (name == null) {
+            System.out.println("Team not found: (null input)");
+            return;
+        }
         List<Team> teams = data.getTeams();
 
         for (Team t : teams) {
+            if (t.getTeamName() == null) continue;
             if (t.getTeamName().equalsIgnoreCase(name) || t.getTeamName().contains(name)) {
                 System.out.println();
                 System.out.println("========== Team Info ==========");
@@ -102,6 +119,14 @@ public class SearchService {
 
     /** Find hero by name, display attributes, compatible/recommended equipment, owners */
     public static void findHeroByName(GameData data, String name) {
+        if (data == null || data.getHeroes() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
+        if (name == null) {
+            System.out.println("Hero not found: (null input)");
+            return;
+        }
         List<Hero> heroes = data.getHeroes();
 
         for (Hero h : heroes) {
@@ -180,6 +205,10 @@ public class SearchService {
 
     /** Equipment ranking by composite score */
     public static void showEquipmentRanking(GameData data) {
+        if (data == null || data.getEquipments() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
         List<Equipment> list = new ArrayList<>(data.getEquipments());
         list.sort((a, b) -> Double.compare(equipScore(b), equipScore(a)));
 
@@ -206,6 +235,10 @@ public class SearchService {
 
     /** Player leaderboard */
     public static void showLeaderboard(GameData data) {
+        if (data == null || data.getPlayers() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
         List<Player> list = new ArrayList<>(data.getPlayers());
         list.sort((a, b) -> {
             int cmp = Double.compare(playerScore(b), playerScore(a));
@@ -234,6 +267,14 @@ public class SearchService {
 
     /** Match history — last 5 matches for a player or team */
     public static void showMatchHistory(GameData data, String input) {
+        if (data == null || data.getPlayers() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
+        if (input == null) {
+            System.out.println("No team found for: (null input)");
+            return;
+        }
         Team targetTeam = null;
 
         // Try finding by player first
@@ -241,12 +282,17 @@ public class SearchService {
             if (p.getUsername().equalsIgnoreCase(input)) {
                 targetTeam = p.getTeam();
                 System.out.println("Query: Player " + p.getUsername());
+                if (targetTeam == null) {
+                    System.out.println("This player does not belong to any team. No match history.");
+                    return;
+                }
                 break;
             }
         }
         // If not found, try by team name
         if (targetTeam == null) {
             for (Team t : data.getTeams()) {
+                if (t.getTeamName() == null) continue;
                 if (t.getTeamName().equalsIgnoreCase(input) || t.getTeamName().contains(input)) {
                     targetTeam = t;
                     System.out.println("Query: Team " + t.getTeamName());

@@ -11,6 +11,10 @@ public class DataManager {
 
     // ===== Player CRUD =====
     public static void addPlayer(GameData data, String name, String rank, double winRate, int matches) {
+        if (name == null || name.trim().isEmpty()) {
+            System.out.println("Error: player name cannot be empty.");
+            return;
+        }
         String id = "P" + String.format("%02d", data.getPlayers().size() + 1);
         Player p = new Player(id, name, "123", Role.PLAYER, rank, winRate, matches, null);
         data.getPlayers().add(p);
@@ -44,6 +48,10 @@ public class DataManager {
 
     // ===== Hero CRUD =====
     public static void addHero(GameData data, String name, HeroRole role, int hp, int atk, int def) {
+        if (name == null || name.trim().isEmpty()) {
+            System.out.println("Error: hero name cannot be empty.");
+            return;
+        }
         String id = "H" + String.format("%02d", data.getHeroes().size() + 1);
         Hero h = new Hero(id, name, role, hp, atk, def);
         data.getHeroes().add(h);
@@ -78,6 +86,10 @@ public class DataManager {
 
     // ===== Equipment CRUD =====
     public static void addEquipment(GameData data, String name, EquipmentType type, int atk, int def, int hp, int price) {
+        if (name == null || name.trim().isEmpty()) {
+            System.out.println("Error: equipment name cannot be empty.");
+            return;
+        }
         String id = "E" + String.format("%02d", data.getEquipments().size() + 1);
         Equipment e = new Equipment(id, name, type, atk, def, hp, price);
         data.getEquipments().add(e);
@@ -113,6 +125,10 @@ public class DataManager {
 
     // ===== Team CRUD =====
     public static void addTeam(GameData data, String name) {
+        if (name == null || name.trim().isEmpty()) {
+            System.out.println("Error: team name cannot be empty.");
+            return;
+        }
         String id = "T" + String.format("%02d", data.getTeams().size() + 1);
         Team t = new Team(id, name, 0, 0);
         data.getTeams().add(t);
@@ -122,7 +138,7 @@ public class DataManager {
     public static void removeTeam(GameData data, String name) {
         List<Team> list = data.getTeams();
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getTeamName().equalsIgnoreCase(name)) {
+            if (list.get(i).getTeamName() != null && list.get(i).getTeamName().equalsIgnoreCase(name)) {
                 list.remove(i);
                 System.out.println("Team deleted: " + name);
                 return;
@@ -133,7 +149,7 @@ public class DataManager {
 
     public static void modifyTeam(GameData data, String name, int newWins, int newLosses) {
         for (Team t : data.getTeams()) {
-            if (t.getTeamName().equalsIgnoreCase(name)) {
+            if (t.getTeamName() != null && t.getTeamName().equalsIgnoreCase(name)) {
                 t.setWins(newWins);
                 t.setLosses(newLosses);
                 System.out.println("Team modified: " + name);
@@ -145,6 +161,10 @@ public class DataManager {
 
     // ===== Match Record CRUD =====
     public static void addMatchRecord(GameData data, Team teamA, Team teamB, int scoreA, int scoreB, LocalDate date) {
+        if (teamA == null || teamB == null) {
+            System.out.println("Error: both teams must be specified.");
+            return;
+        }
         String id = "M" + String.format("%02d", data.getMatchRecords().size() + 1);
         MatchRecord m = new MatchRecord(id, teamA, teamB, scoreA, scoreB, date);
         data.getMatchRecords().add(m);
