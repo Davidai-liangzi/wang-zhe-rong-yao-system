@@ -145,7 +145,7 @@ Each prompt will specify the Agent role, task scope, and expected output format,
 The project progresses through 8 stages, from requirements analysis to final documentation submission (estimated 1 week).
 
 ## 10. Testing Plan
-Manual test cases written for each core function, recorded in docs/test-cases.md. Executed 23 test cases covering all 8 functional modules plus permission control and edge input, 100% pass rate. Extra features tested with 6 additional automated assertions, all passed.
+Manual test cases written for each core function, recorded in docs/test-cases.md. Executed 23 manual test cases covering all 8 functional modules plus permission control and edge input, 100% pass rate. Full automated verification (43 tests) covering core modules, CRUD, persistence, Identifiable interface, combat simulator, and recommendation engine — all passed 43/43.
 
 ## 11. Risk Analysis
 Key risks include uncontrollable AI-generated code quality and debugging time exceeding expectations (especially AI hallucinations). These will be mitigated through incremental verification and iterative fixes.

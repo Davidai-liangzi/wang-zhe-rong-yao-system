@@ -6,7 +6,7 @@
 **Date/Time**: 2026-06-03 14:15
 **Tool/Model**: Deepseekv4Pro
 **Agent Role**: Architect
-**Related Commit**: (Initialize repository)
+**Related Commit**: [Human] Initialize repository, create project folder structure
 
 ### My Prompt
 Please give me a plan.md template for a Java Honor of Kings Information Management System
@@ -23,7 +23,7 @@ AI provided a plan.md template with 12 sections covering project goals, requirem
 **Date/Time**: 2026-06-04 21:00
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Write plan.md framework)
+**Related Commit**: [Human] Create plan.md framework and record prompts
 
 ### My Prompt
 Help me create plan.md with 12 section titles as required by the assignment, and write one placeholder sentence under each title. Make it conversational, like a human wrote it. Also record the prompt to prompts.md.
@@ -40,7 +40,7 @@ AI generated a 12-section plan.md framework based on Section 8 of the assignment
 **Date/Time**: 2026-06-05 09:45
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Architect
-**Related Commit**: (Class design phase)
+**Related Commit**: [AI-Architect] Design class structure and UML, record to plan.md
 
 ### My Prompt
 Help me format prompts.md, agent-log.md, and reflection.md according to the Section 6 formatting requirements in requirement_Eng.pdf.
@@ -57,7 +57,7 @@ AI extracted specific formatting requirements for the three files from the PDF.
 **Date/Time**: 2026-06-05 09:50
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Architect
-**Related Commit**: (Class design commit)
+**Related Commit**: [AI-Architect] Design class structure and UML, record to plan.md
 
 ### My Prompt
 You are a Java Architect Agent. I need to design classes for the Honor of Kings Information Management System. Please list Person(abstract), Player, Admin, Hero, Equipment, Team, MatchRecord. For each class, give core fields and main methods. Draw a simple UML in text form.
@@ -74,7 +74,7 @@ AI produced 3 enums and field/method signatures for 7 classes. Person as abstrac
 **Date/Time**: 2026-06-07 15:10
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Data initialization)
+**Related Commit**: [Human] Hard-code initial data, meet minimum quantity requirements
 
 ### My Prompt
 Help me create DataInitializer.java with hardcoded data: 10 players, 15 heroes, 20 equipment items, 3 teams, 10 match records. Also create a GameData class as the data container. Use hardcoded data, not files.
@@ -91,7 +91,7 @@ AI created the GameData container class (holding 6 Lists), then wrote DataInitia
 **Date/Time**: 2026-06-08 11:00
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Player lookup)
+**Related Commit**: [AI-Implementation] Implement player lookup feature
 
 ### My Prompt
 Help me write a SearchService.java with a findPlayerByName method. Input: player username (case-insensitive), iterate through the player list in GameData. When found, display: username, rank, win rate, match count, team, hero pool (each hero shows name + role + HP/ATK/DEF + skill list). If not found, print "Player not found: xxx". Use Java, static void method, parameters: GameData and String name.
@@ -108,7 +108,7 @@ AI wrote a SearchService class with findPlayerByName method: iterates players li
 **Date/Time**: 2026-06-08 14:20
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Team overview)
+**Related Commit**: [AI-Implementation] Implement team overview feature
 
 ### My Prompt
 Help me add a findTeamByName method to SearchService. Search by team name (supports contains fuzzy matching), display: team name, record, win rate, member list (each member shows username + rank + win rate + matches), total matches, average rank, best player on team (by win rate). Ranks are in named tiers (King/Star Glory/Diamond etc.), need to convert to numbers for averaging.
@@ -125,7 +125,7 @@ AI added findTeamByName method, iterates teams list with equalsIgnoreCase and co
 **Date/Time**: 2026-06-08 16:05
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Hero details)
+**Related Commit**: [Human] Implement hero details query
 
 ### My Prompt
 Help me add a findHeroByName method to SearchService. Search by hero name (supports contains fuzzy matching), display: role, base attributes HP/ATK/DEF, skill list, recommended equipment (filter suitable equipment types by hero role, e.g., tank recommends defense items, mage recommends magic items), and list of players who own this hero (including rank and team).
@@ -142,7 +142,7 @@ AI added findHeroByName and isSuitable helper method. findHeroByName iterates he
 **Date/Time**: 2026-06-08 17:05
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Equipment stats)
+**Related Commit**: [AI-Review] Implement equipment stats, test Agent verify sorting
 
 ### My Prompt
 Help me add a showEquipmentRanking method to SearchService. Display an equipment ranking table sorted by composite score descending. Scoring formula: ATK×1.0 + DEF×0.8 + HP×0.6 - price×0.001. Print as a table with rank, equipment name, type, ATK/DEF/HP, price, score. No parameters, use all equipment directly from GameData.
@@ -159,7 +159,7 @@ AI added showEquipmentRanking and equipScore methods. Uses new ArrayList copy to
 **Date/Time**: 2026-06-08 18:02
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Leaderboard)
+**Related Commit**: [Human] Implement player leaderboard
 
 ### My Prompt
 Help me add a showLeaderboard method to SearchService. Sort all players and display the full leaderboard. Scoring formula: winRate×1.0 + rankScore(King5→Gold1)×5.0 + matchCount×0.01. Break ties by username alphabetical order (pinyin). Use printf table output: rank, username, rank, win rate, matches, score.
@@ -176,7 +176,7 @@ AI added showLeaderboard and playerScore methods. Uses new ArrayList copy, sort 
 **Date/Time**: 2026-06-09 10:15
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Match history)
+**Related Commit**: [AI-Implementation] Implement match history query
 
 ### My Prompt
 Help me add a showMatchHistory method to SearchService. Input: player name or team name. First try to find the player's team by player name; if not found, try team name. Get the 5 most recent matches involving that team (sorted by date descending), display: date, opponent, score, win/loss result, and the participating hero list for team members. Use Stream API for filtering and sorting.
@@ -193,7 +193,7 @@ AI added showMatchHistory method, locates target team by player name or team nam
 **Date/Time**: 2026-06-09 11:20
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: (Admin data management)
+**Related Commit**: [AI-Implementation] Implement admin add/delete/modify functions
 
 ### My Prompt
 Help me write a DataManager.java with admin add/remove functionality. The add/remove operations should cover four types: players, heroes, equipment, teams. In-memory operations only, no persistence. Also create a data management submenu at option 7 in Main.java with 8 options for add/remove across four types, enter 0 to return to the main menu.
@@ -227,7 +227,7 @@ AI made Player/Hero/Equipment/Team/MatchRecord/GameData/Person all implement Ser
 **Date/Time**: 2026-06-09 17:30
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Testing/Reviewer
-**Related Commit**: [AI-Review] Write test cases, execute, and record results
+**Related Commit**: [AI-Review] Write test cases and execute, record results
 
 ### My Prompt
 Help me write 15 test cases to docs/test-cases.md, covering player lookup, team overview, hero details, equipment stats, leaderboard, match history, data management, file persistence, permission control, and boundary input. Table format: ID, module, input, expected result, actual result (leave blank for me to fill), pass/fail, bug.
@@ -244,7 +244,7 @@ AI generated 15 test cases (TC-01~TC-15) covering all core feature modules, each
 **Date/Time**: 2026-06-09 17:45
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: [AI-Implementation] Complete admin modify functionality
+**Related Commit**: [AI-Implementation] Complete admin modify functions, update plan.md and README
 
 ### My Prompt
 Help me complete the modify methods in DataManager — add a modify method each for players, heroes, equipment, and teams. Find by name, then update modifiable fields. Also add modify options to the data management submenu in Main.java.
@@ -261,7 +261,7 @@ AI added modifyPlayer/modifyHero/modifyEquipment/modifyTeam four methods, each t
 **Date/Time**: 2026-06-10 16:10
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: [AI-Review] Fill gaps in project requirements
+**Related Commit**: [AI-Review] Fill in missing project features
 
 ### My Prompt
 Help me complete the following improvements: 1) Add an Identifiable interface (getId/getName) and have all model classes implement it; 2) Add id field to Person; 3) Add compatibleEquipments list to Hero; 4) Expand initial data to 5 per team, 3 heroes per player, 2-4 equipment items per hero; 5) Add match record add/remove to DataManager; 6) Update SearchService so player lookup shows hero equipment and hero details show compatible equipment.
@@ -278,7 +278,7 @@ AI created the Identifiable interface, updated constructors and fields of 6 mode
 **Date/Time**: 2026-06-10 16:20
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Architect
-**Related Commit**: [AI-Architect] Update UML + Design Service layer architecture (two commits)
+**Related Commit**: [AI-Architect] Update UML diagram and [AI-Architect] Design Service layer architecture (two commits)
 
 ### My Prompt
 As the Architect Agent, please complete two design tasks: 1) Update the UML diagram in plan.md to include the Identifiable interface and Hero.compatibleEquipments association; 2) Design the Service layer architecture in design.md — clarify the responsibility division of the four service classes, design patterns, input/output contracts for each method, and four design principles.
@@ -295,7 +295,7 @@ AI redrew the text UML: Identifiable interface at top, Person abstract class wit
 **Date/Time**: 2026-06-10 16:50
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Testing/Reviewer
-**Related Commit**: [AI-Review] Full feature verification passed, update documentation
+**Related Commit**: [AI-Review] Full feature verification tests passed, update docs
 
 ### My Prompt
 Help me write a full feature verification test covering 11 modules: authentication, player lookup, team overview, hero details, equipment stats, leaderboard, match history, data CRUD, file persistence, permission control, and interface implementation. Use a check method to count pass/fail and output summary results.
@@ -312,7 +312,7 @@ AI wrote FullTest.java, 55 assertions covering 11 modules: 5 auth assertions, 7 
 **Date/Time**: 2026-06-10 17:10
 **Tool/Model**: Trae IDE (AI Coding Assistant)
 **Agent Role**: Implementation
-**Related Commit**: [AI-Implementation] Implement extra credit features: Combat Simulation, Recommendation Engine, GUI
+**Related Commit**: [AI-Implementation] Implement admin add/delete/modify functions (spans multiple commits for 3 extra features: Combat + Recommendation + GUI)
 
 ### My Prompt
 Help me implement the three extra credit features from Section 10: 10.1 Turn-based combat simulator (hero + equipment attributes, crit/dodge, combat log); 10.2 Recommendation engine (recommend equipment by hero role, analyze player role gaps to recommend heroes); 10.3 Swing GUI (JTabbedPane covering all features, redirect System.out to JTextArea).
