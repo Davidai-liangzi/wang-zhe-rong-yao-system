@@ -2,5 +2,7 @@
 *.log
 *.jar
 *.war
+data.ser
+out/
 .DS_Store
 Thumbs.db
