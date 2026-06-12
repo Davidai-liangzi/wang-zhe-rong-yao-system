@@ -1,9 +1,8 @@
 package model;
 
-import java.io.Serializable;
+import java.util.Objects;
 
-public class Equipment implements Serializable, Identifiable {
-    private static final long serialVersionUID = 1L;
+public class Equipment implements Identifiable {
     private String id;
     private String name;
     private EquipmentType type;
@@ -39,4 +38,17 @@ public class Equipment implements Serializable, Identifiable {
     public void setBonusHp(int bonusHp) { this.bonusHp = bonusHp; }
     public int getPrice() { return price; }
     public void setPrice(int price) { this.price = price; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Equipment eq = (Equipment) o;
+        return Objects.equals(id, eq.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }

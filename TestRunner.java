@@ -11,6 +11,7 @@ import java.util.Random;
  */
 public class TestRunner {
     static int passed = 0, failed = 0;
+    static final Searchable ss = new SearchService();
 
     public static void main(String[] args) {
         System.out.println("=== Full Feature Verification ===\n");
@@ -43,22 +44,22 @@ public class TestRunner {
         test("Equipment has name", e.getName() != null && !e.getName().isEmpty());
 
         // === Smoke Tests ===
-        try { SearchService.findPlayerByName(data, "p2_jiucheng"); test("Player lookup runs", true); }
+        try { ss.findPlayerByName(data, "p2_jiucheng"); test("Player lookup runs", true); }
         catch (Exception ex) { test("Player lookup runs", false); }
 
-        try { SearchService.findTeamByName(data, p.getTeam().getTeamName()); test("Team overview runs", true); }
+        try { ss.findTeamByName(data, p.getTeam().getTeamName()); test("Team overview runs", true); }
         catch (Exception ex) { test("Team overview runs", false); }
 
-        try { SearchService.findHeroByName(data, h.getName()); test("Hero details runs", true); }
+        try { ss.findHeroByName(data, h.getName()); test("Hero details runs", true); }
         catch (Exception ex) { test("Hero details runs", false); }
 
-        try { SearchService.showEquipmentRanking(data); test("Equipment ranking runs", true); }
+        try { ss.showEquipmentRanking(data); test("Equipment ranking runs", true); }
         catch (Exception ex) { test("Equipment ranking runs", false); }
 
-        try { SearchService.showLeaderboard(data); test("Leaderboard runs", true); }
+        try { ss.showLeaderboard(data); test("Leaderboard runs", true); }
         catch (Exception ex) { test("Leaderboard runs", false); }
 
-        try { SearchService.showMatchHistory(data, p.getTeam().getTeamName()); test("Match history runs", true); }
+        try { ss.showMatchHistory(data, p.getTeam().getTeamName()); test("Match history runs", true); }
         catch (Exception ex) { test("Match history runs", false); }
 
         // =============================================
@@ -410,11 +411,11 @@ public class TestRunner {
         testP.getHeroPool().add(ownedHero);
 
         GameData miniData = new GameData();
-        miniData.getPlayers().add(testP);
-        miniData.getHeroes().add(strong);   // total 5500
-        miniData.getHeroes().add(medium);   // total 3300
-        miniData.getHeroes().add(weak);     // total 1100
-        miniData.getHeroes().add(ownedHero); // already owned, should be excluded
+        miniData.addPlayer(testP);
+        miniData.addHero(strong);   // total 5500
+        miniData.addHero(medium);   // total 3300
+        miniData.addHero(weak);     // total 1100
+        miniData.addHero(ownedHero); // already owned, should be excluded
 
         List<Hero> sorted = RecommendationService.getRecommendedHeroesForPlayer(miniData, "SortPlayer");
         test("Recommend sort: strong first (via service)",

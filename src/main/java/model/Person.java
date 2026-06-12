@@ -1,9 +1,6 @@
 package model;
 
-import java.io.Serializable;
-
-public abstract class Person implements Serializable, Identifiable {
-    private static final long serialVersionUID = 1L;
+public abstract class Person implements Identifiable {
     private String id;
     private String username;
     private String password;

@@ -1,11 +1,10 @@
 package model;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Objects;
 
-public class Team implements Serializable, Identifiable {
-    private static final long serialVersionUID = 1L;
+public class Team implements Identifiable {
     private String id;
     private String teamName;
     private List<Player> members;
@@ -42,7 +41,7 @@ public class Team implements Serializable, Identifiable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Team team = (Team) o;
-        return java.util.Objects.equals(id, team.id);
+        return Objects.equals(id, team.id);
     }
 
     @Override

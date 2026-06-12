@@ -7,60 +7,51 @@ import java.util.stream.Collectors;
 /**
  * Recommendation Engine: Recommends equipment and heroes
  * based on hero type, stats, and player preferences.
+ * All methods return formatted String results.
  * Section 10.2 Extra Credit
  */
 public class RecommendationService {
 
     /**
-     * Recommend the most suitable equipment for a given hero
-     * (top N from compatible equipment sorted by role-adjusted score).
-     * Formula: defense-type heroes prioritize DEF+HP, attack-type prioritize ATK.
+     * Recommend the most suitable equipment for a given hero.
+     * Returns formatted ranking as String.
      */
-    public static void recommendEquipmentForHero(GameData data, String heroName) {
-        if (data == null || data.getHeroes() == null) {
-            System.out.println("Error: no data available.");
-            return;
-        }
+    public static String recommendEquipmentForHero(GameData data, String heroName) {
+        if (data == null || data.getHeroes() == null) return "Error: no data available.";
+
         Hero target = null;
         for (Hero h : data.getHeroes()) {
             if (h.getName().equalsIgnoreCase(heroName)) { target = h; break; }
         }
-        if (target == null) {
-            System.out.println("Hero not found: " + heroName);
-            return;
-        }
+        if (target == null) return "Hero not found: " + heroName;
 
         List<Equipment> candidates = target.getCompatibleEquipments();
-        if (candidates.isEmpty()) {
-            // No compatible equipment - fall back to role-based recommendation
-            candidates = new ArrayList<>(data.getEquipments());
-        }
+        if (candidates.isEmpty()) candidates = new ArrayList<>(data.getEquipments());
 
-        // Adjust scoring weights by hero role
         final Hero finalTarget = target;
         candidates.sort((a, b) -> Double.compare(
                 equipScoreForHero(b, finalTarget),
-                equipScoreForHero(a, finalTarget)
-        ));
+                equipScoreForHero(a, finalTarget)));
 
-        System.out.println();
-        System.out.println("========== Equipment Recommendation ==========");
-        System.out.println("Hero: " + target.getName() + " [" + target.getHeroRole() + "]");
-        System.out.println("Strategy: role-adjusted scoring weights");
-        System.out.println("Rank  Name           Type  ATK   DEF    HP    Price  Score");
-        System.out.println("----------------------------------------------------------");
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n========== Equipment Recommendation ==========\n");
+        sb.append("Hero: ").append(target.getName()).append(" [").append(target.getHeroRole()).append("]\n");
+        sb.append("Strategy: role-adjusted scoring weights\n");
+        sb.append(String.format("Rank  %-16s %-6s %-5s %-5s %-5s %-6s %-7s\n",
+                "Name", "Type", "ATK", "DEF", "HP", "Price", "Score"));
+        sb.append("----------------------------------------------------------\n");
 
         int count = 0;
         for (Equipment e : candidates) {
             if (count >= 6) break;
             double s = equipScoreForHero(e, target);
-            System.out.printf(" %-4d %-16s %-6s %-5d %-5d %-5d %-6d %-7.1f\n",
+            sb.append(String.format(" %-4d %-16s %-6s %-5d %-5d %-5d %-6d %-7.1f\n",
                     count + 1, e.getName(), e.getType(),
-                    e.getBonusAtk(), e.getBonusDef(), e.getBonusHp(),
-                    e.getPrice(), s);
+                    e.getBonusAtk(), e.getBonusDef(), e.getBonusHp(), e.getPrice(), s));
             count++;
         }
-        System.out.println("==============================");
+        sb.append("==============================\n");
+        return sb.toString();
     }
 
     /** Adjust equipment scoring weights based on hero role */
@@ -68,32 +59,23 @@ public class RecommendationService {
         double atkW = 1.0, defW = 0.8, hpW = 0.6;
         switch (h.getHeroRole()) {
             case WARRIOR:
-            case ASSASSIN:
-                atkW = 1.5; defW = 0.5; hpW = 0.5; break;  // Prioritize attack
-            case TANK:
-                atkW = 0.3; defW = 1.5; hpW = 1.2; break;   // Prioritize defense
-            case MAGE:
-                atkW = 1.4; defW = 0.3; hpW = 0.4; break;   // Prioritize magic
-            case MARKSMAN:
-                atkW = 1.3; defW = 0.4; hpW = 0.5; break;   // Prioritize output
-            case SUPPORT:
-                defW = 1.2; hpW = 1.0; atkW = 0.2; break;   // Prioritize survival
+            case ASSASSIN:  atkW = 1.5; defW = 0.5; hpW = 0.5; break;
+            case TANK:      atkW = 0.3; defW = 1.5; hpW = 1.2; break;
+            case MAGE:      atkW = 1.4; defW = 0.3; hpW = 0.4; break;
+            case MARKSMAN:  atkW = 1.3; defW = 0.4; hpW = 0.5; break;
+            case SUPPORT:   defW = 1.2; hpW = 1.0; atkW = 0.2; break;
         }
-        return e.getBonusAtk() * atkW
-             + e.getBonusDef() * defW
-             + e.getBonusHp() * hpW
-             - e.getPrice() * 0.001;
+        return e.getBonusAtk() * atkW + e.getBonusDef() * defW
+             + e.getBonusHp() * hpW - e.getPrice() * 0.001;
     }
 
     /**
-     * Recommend unowned heroes for player (based on role coverage gaps)
-     * If player lacks heroes of certain role, recommend unowned heroes of that role
-     * @return the sorted recommended heroes list (for testing)
+     * Recommend unowned heroes for player (based on role coverage gaps).
+     * @return sorted recommended heroes list (for testing)
      */
     public static List<Hero> getRecommendedHeroesForPlayer(GameData data, String playerName) {
-        if (data == null || data.getPlayers() == null) {
-            return new ArrayList<>();
-        }
+        if (data == null || data.getPlayers() == null) return new ArrayList<>();
+
         Player target = null;
         for (Player p : data.getPlayers()) {
             if (p.getUsername().equalsIgnoreCase(playerName)) { target = p; break; }
@@ -106,7 +88,6 @@ public class RecommendationService {
             ownedRoles.add(h.getHeroRole());
             ownedNames.add(h.getName());
         }
-
         Set<HeroRole> missingRoles = new HashSet<>(Arrays.asList(HeroRole.values()));
         missingRoles.removeAll(ownedRoles);
 
@@ -119,18 +100,15 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
-    /** Prints hero recommendations to console (delegates to getRecommendedHeroesForPlayer) */
-    public static void recommendHeroesForPlayer(GameData data, String playerName) {
+    /** Returns hero recommendations as formatted String */
+    public static String recommendHeroesForPlayer(GameData data, String playerName) {
         List<Hero> candidates = getRecommendedHeroesForPlayer(data, playerName);
 
         Player target = null;
         for (Player p : data.getPlayers()) {
             if (p.getUsername().equalsIgnoreCase(playerName)) { target = p; break; }
         }
-        if (target == null) {
-            System.out.println("Player not found: " + playerName);
-            return;
-        }
+        if (target == null) return "Player not found: " + playerName;
 
         Set<HeroRole> ownedRoles = new HashSet<>();
         Set<String> ownedNames = new HashSet<>();
@@ -141,23 +119,23 @@ public class RecommendationService {
         Set<HeroRole> missingRoles = new HashSet<>(Arrays.asList(HeroRole.values()));
         missingRoles.removeAll(ownedRoles);
 
-        System.out.println();
-        System.out.println("========== Hero Recommendation ==========");
-        System.out.println("Player: " + target.getUsername());
-        System.out.println("Owned roles: " + ownedRoles);
-        System.out.println("Missing roles: " + missingRoles);
-        System.out.println();
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n========== Hero Recommendation ==========\n");
+        sb.append("Player: ").append(target.getUsername()).append("\n");
+        sb.append("Owned roles: ").append(ownedRoles).append("\n");
+        sb.append("Missing roles: ").append(missingRoles).append("\n\n");
 
         if (candidates.isEmpty()) {
-            System.out.println("  (All roles covered!)");
+            sb.append("  (All roles covered!)\n");
         } else {
-            System.out.println("Recommended heroes to fill role gaps:");
+            sb.append("Recommended heroes to fill role gaps:\n");
             for (Hero h : candidates) {
-                System.out.println("  " + h.getName() + " [" + h.getHeroRole() + "]"
-                        + " HP:" + h.getHp() + " ATK:" + h.getAtk() + " DEF:" + h.getDef()
-                        + " Skills: " + String.join(", ", h.getSkills()));
+                sb.append("  ").append(h.getName()).append(" [").append(h.getHeroRole()).append("]")
+                  .append(" HP:").append(h.getHp()).append(" ATK:").append(h.getAtk()).append(" DEF:").append(h.getDef())
+                  .append(" Skills: ").append(String.join(", ", h.getSkills())).append("\n");
             }
         }
-        System.out.println("==============================");
+        sb.append("==============================\n");
+        return sb.toString();
     }
 }

@@ -80,7 +80,7 @@ Select mode 2 to launch Swing GUI.
 
 ## 8. Known Limitations
 
-1. Login system has no password verification (role selection only)
+1. Login system supports username + password authentication with 3 attempts for both admin and player roles
 2. Admin modify does not support editing hero skills or recommended equipment
 3. Match history participating heroes shown as first hero in pool (not actual pick)
 4. Serialized saves not backward-compatible after class structure changes

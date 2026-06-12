@@ -2,9 +2,20 @@ import model.*;
 import service.*;
 import java.util.Scanner;
 import java.util.List;
+import java.util.InputMismatchException;
+import java.time.LocalDate;
 import javax.swing.SwingUtilities;
 
+/**
+ * Main entry point for Honor of Kings IMS.
+ * Uses Searchable + Persistable interfaces for polymorphic design.
+ * Supports console mode (1) and GUI mode (2).
+ */
 public class Main {
+    private static final int MAX_LOGIN_ATTEMPTS = 3;
+    private static final Searchable searchService = new SearchService();
+    private static final Persistable persistence = new JsonPersistence();
+
     public static void main(String[] args) {
         System.out.println("=== Honor of Kings IMS ===");
         System.out.println("Select mode:");
@@ -13,177 +24,197 @@ public class Main {
         System.out.print("Choice: ");
 
         Scanner sc = new Scanner(System.in);
-        int mode = sc.nextInt();
-        sc.nextLine();
+        int mode = readInt(sc);
 
         if (mode == 2) {
             SwingUtilities.invokeLater(() -> {
                 GameGUI gui = new GameGUI();
                 gui.setVisible(true);
             });
+            sc.close();
             return;
         }
 
-        // Try loading from save, fall back to initial data
-        GameData data = FilePersistence.loadData();
-        if (data == null) {
-            data = DataInitializer.initAll();
-        }
+        GameData data = persistence.load();
+        if (data == null) data = DataInitializer.initAll();
         System.out.println("System ready. Loaded " + data.getPlayers().size() + " players.");
 
-        Player currentPlayer = null;
-
-        // Simple login: choose role
+        int userRole = 0;
+        System.out.println("\n=== Login ===");
         System.out.println("Select role:");
         System.out.println("1. Admin");
         System.out.println("2. Player");
         System.out.print("Choice: ");
-        int role = sc.nextInt();
-        sc.nextLine(); // consume newline
+        userRole = readInt(sc);
 
-        if (role == 1) {
+        if (userRole == 1) {
+            if (authenticateAdmin(data, sc) == null) { sc.close(); return; }
             showAdminMenu();
-        } else if (role == 2) {
-            System.out.print("Enter your username: ");
-            String loginName = sc.nextLine();
-            currentPlayer = findPlayer(data, loginName);
-            if (currentPlayer == null) {
-                System.out.println("Player not found. Exiting.");
-                sc.close();
-                return;
-            }
+        } else if (userRole == 2) {
+            Player currentPlayer = authenticatePlayer(data, sc);
+            if (currentPlayer == null) { sc.close(); return; }
             System.out.println("Welcome, " + currentPlayer.getUsername() + "!");
             showPlayerMenu();
+            runPlayerMenuLoop(sc, data, currentPlayer);
+            return;
         } else {
             System.out.println("Invalid choice. Exiting.");
             sc.close();
             return;
         }
 
-        // Menu loop
+        // Admin menu loop
         while (true) {
             System.out.print("Choice: ");
-            int choice = sc.nextInt();
-            sc.nextLine(); // consume newline
-
-            if (choice == 0) {
-                System.out.println("Goodbye!");
-                FilePersistence.saveData(data);
-                break;
-            }
-
-            switch (choice) {
-                case 1:
-                    System.out.print("Enter player username: ");
-                    String name = sc.nextLine();
-                    SearchService.findPlayerByName(data, name);
-                    break;
-                case 2:
-                    System.out.print("Enter team name: ");
-                    String teamName = sc.nextLine();
-                    SearchService.findTeamByName(data, teamName);
-                    break;
-                case 3:
-                    System.out.print("Enter hero name: ");
-                    String heroName = sc.nextLine();
-                    SearchService.findHeroByName(data, heroName);
-                    break;
-                case 4:
-                    SearchService.showEquipmentRanking(data);
-                    break;
-                case 5:
-                    System.out.print("Enter player or team name: ");
-                    String matchInput = sc.nextLine();
-                    SearchService.showMatchHistory(data, matchInput);
-                    break;
-                case 6:
-                    SearchService.showLeaderboard(data);
-                    break;
-                case 7:
-                    if (role == 1) {
-                        dataManageMenu(sc, data);
-                    } else if (currentPlayer != null) {
-                        SearchService.findPlayerByName(data, currentPlayer.getUsername());
-                    } else {
-                        System.out.println("Access denied.");
-                    }
-                    break;
-                case 8:
-                    if (currentPlayer != null) {
-                        editOwnInfo(sc, currentPlayer);
-                    } else {
-                        System.out.println("Access denied.");
-                    }
-                    break;
-                default:
-                    System.out.println("Invalid choice.");
-            }
+            int choice = readInt(sc);
+            if (choice == 0) { System.out.println("Goodbye!"); persistence.save(data); break; }
+            handleAdminChoice(sc, data, choice);
         }
-
         sc.close();
     }
 
-    /** Find player by username */
-    static Player findPlayer(GameData data, String name) {
-        for (Player p : data.getPlayers()) {
-            if (p.getUsername().equalsIgnoreCase(name)) return p;
+    private static void runPlayerMenuLoop(Scanner sc, GameData data, Player currentPlayer) {
+        while (true) {
+            System.out.print("Choice: ");
+            int choice = readInt(sc);
+            if (choice == 0) { System.out.println("Goodbye!"); persistence.save(data); break; }
+            handlePlayerChoice(sc, data, currentPlayer, choice);
         }
+    }
+
+    private static void handleAdminChoice(Scanner sc, GameData data, int choice) {
+        switch (choice) {
+            case 1: System.out.print(searchService.findPlayerByName(data, readLine(sc, "Enter player username: "))); break;
+            case 2: System.out.print(searchService.findTeamByName(data, readLine(sc, "Enter team name: "))); break;
+            case 3: System.out.print(searchService.findHeroByName(data, readLine(sc, "Enter hero name: "))); break;
+            case 4: System.out.print(searchService.showEquipmentRanking(data)); break;
+            case 5: System.out.print(searchService.showMatchHistory(data, readLine(sc, "Enter player or team name: "))); break;
+            case 6: System.out.print(searchService.showLeaderboard(data)); break;
+            case 7: dataManageMenu(sc, data); break;
+            default: System.out.println("Invalid choice.");
+        }
+    }
+
+    private static void handlePlayerChoice(Scanner sc, GameData data, Player currentPlayer, int choice) {
+        switch (choice) {
+            case 1: System.out.print(searchService.findPlayerByName(data, readLine(sc, "Enter player username: "))); break;
+            case 2: System.out.print(searchService.findTeamByName(data, readLine(sc, "Enter team name: "))); break;
+            case 3: System.out.print(searchService.findHeroByName(data, readLine(sc, "Enter hero name: "))); break;
+            case 4: System.out.print(searchService.showEquipmentRanking(data)); break;
+            case 5: System.out.print(searchService.showMatchHistory(data, readLine(sc, "Enter player or team name: "))); break;
+            case 6: System.out.print(searchService.showLeaderboard(data)); break;
+            case 7: System.out.print(searchService.findPlayerByName(data, currentPlayer.getUsername())); break;
+            case 8: editOwnInfo(sc, currentPlayer); break;
+            default: System.out.println("Invalid choice.");
+        }
+    }
+
+    private static String readLine(Scanner sc, String prompt) {
+        System.out.print(prompt);
+        return sc.nextLine();
+    }
+
+    // ======================
+    // Authentication
+    // ======================
+
+    static Admin authenticateAdmin(GameData data, Scanner sc) {
+        for (int attempt = 1; attempt <= MAX_LOGIN_ATTEMPTS; attempt++) {
+            System.out.print("Admin username: ");
+            String username = sc.nextLine().trim();
+            System.out.print("Password: ");
+            String password = sc.nextLine();
+            for (Admin a : data.getAdmins()) {
+                if (a.getUsername().equals(username) && a.getPassword().equals(password)) {
+                    System.out.println("Welcome, Admin " + a.getUsername() + "!");
+                    return a;
+                }
+            }
+            if (attempt < MAX_LOGIN_ATTEMPTS)
+                System.out.println("Invalid credentials. " + (MAX_LOGIN_ATTEMPTS - attempt) + " attempt(s) remaining.");
+        }
+        System.out.println("Authentication failed. Exiting.");
         return null;
     }
 
-    /** Player edits own info */
+    static Player authenticatePlayer(GameData data, Scanner sc) {
+        for (int attempt = 1; attempt <= MAX_LOGIN_ATTEMPTS; attempt++) {
+            System.out.print("Username: ");
+            String username = sc.nextLine().trim();
+            System.out.print("Password: ");
+            String password = sc.nextLine();
+            for (Player p : data.getPlayers()) {
+                if (p.getUsername().equalsIgnoreCase(username) && p.getPassword().equals(password)) return p;
+            }
+            if (attempt < MAX_LOGIN_ATTEMPTS)
+                System.out.println("Invalid credentials. " + (MAX_LOGIN_ATTEMPTS - attempt) + " attempt(s) remaining.");
+        }
+        System.out.println("Authentication failed. Exiting.");
+        return null;
+    }
+
+    // ======================
+    // Input helpers
+    // ======================
+
+    static int readInt(Scanner sc) {
+        while (true) {
+            try { int value = sc.nextInt(); sc.nextLine(); return value; }
+            catch (InputMismatchException e) { System.out.print("Invalid input. Please enter a number: "); sc.nextLine(); }
+        }
+    }
+
+    static double readDouble(Scanner sc) {
+        while (true) {
+            try { double value = sc.nextDouble(); sc.nextLine(); return value; }
+            catch (InputMismatchException e) { System.out.print("Invalid input. Please enter a number: "); sc.nextLine(); }
+        }
+    }
+
+    // ======================
+    // Profile editing
+    // ======================
+
     static void editOwnInfo(Scanner sc, Player p) {
-        System.out.println();
-        System.out.println("=== Edit Profile ===");
+        System.out.println("\n=== Edit Profile ===");
         System.out.println("Current: rank=" + p.getRank() + ", winRate=" + p.getWinRate() + "%, matches=" + p.getMatchesPlayed());
         System.out.print("New rank (Enter to skip): ");
         String newRank = sc.nextLine();
         if (!newRank.isEmpty()) p.setRank(newRank);
         System.out.print("New winRate (-1 to skip): ");
-        double newWR = sc.nextDouble(); sc.nextLine();
-        if (newWR >= 0) p.setWinRate(newWR);
+        try { double newWR = sc.nextDouble(); sc.nextLine(); if (newWR >= 0) p.setWinRate(newWR); }
+        catch (InputMismatchException e) { sc.nextLine(); }
         System.out.print("New matches (-1 to skip): ");
-        int newMatches = sc.nextInt(); sc.nextLine();
-        if (newMatches >= 0) p.setMatchesPlayed(newMatches);
+        try { int newMatches = sc.nextInt(); sc.nextLine(); if (newMatches >= 0) p.setMatchesPlayed(newMatches); }
+        catch (InputMismatchException e) { sc.nextLine(); }
         System.out.println("Profile updated.");
     }
 
-    // Admin Menu
+    // ======================
+    // Menus
+    // ======================
+
     static void showAdminMenu() {
-        System.out.println();
-        System.out.println("=== Admin Menu ===");
-        System.out.println("1. Player Lookup");
-        System.out.println("2. Team Overview");
-        System.out.println("3. Hero Details");
-        System.out.println("4. Equipment Stats");
-        System.out.println("5. Match History");
-        System.out.println("6. Leaderboard");
-        System.out.println("7. Data Management (CRUD)");
-        System.out.println("0. Exit");
-        System.out.println();
+        System.out.println("\n=== Admin Menu ===");
+        for (String s : new String[]{"1. Player Lookup","2. Team Overview","3. Hero Details",
+                "4. Equipment Stats","5. Match History","6. Leaderboard","7. Data Management (CRUD)","0. Exit"})
+            System.out.println(s);
     }
 
-    // Player Menu
     static void showPlayerMenu() {
-        System.out.println();
-        System.out.println("=== Player Menu ===");
-        System.out.println("1. Player Lookup");
-        System.out.println("2. Team Overview");
-        System.out.println("3. Hero Details");
-        System.out.println("4. Equipment Stats");
-        System.out.println("5. Match History");
-        System.out.println("6. Leaderboard");
-        System.out.println("7. View My Info");
-        System.out.println("8. Edit My Info");
-        System.out.println("0. Exit");
-        System.out.println();
+        System.out.println("\n=== Player Menu ===");
+        for (String s : new String[]{"1. Player Lookup","2. Team Overview","3. Hero Details",
+                "4. Equipment Stats","5. Match History","6. Leaderboard","7. View My Info","8. Edit My Info","0. Exit"})
+            System.out.println(s);
     }
 
-    // Admin Data Management Submenu
+    // ======================
+    // Data Management (refactored into sub-methods)
+    // ======================
+
     static void dataManageMenu(Scanner sc, GameData data) {
         while (true) {
-            System.out.println();
-            System.out.println("=== Data Management ===");
+            System.out.println("\n=== Data Management ===");
             System.out.println("[Player] 1.Add  2.Delete  3.Modify");
             System.out.println("[Hero]   4.Add  5.Delete  6.Modify");
             System.out.println("[Equip]  7.Add  8.Delete  9.Modify");
@@ -191,118 +222,127 @@ public class Main {
             System.out.println("[Match] 13.Add 14.Delete");
             System.out.println("0. Back");
             System.out.print("Choice: ");
-            int cmd = sc.nextInt();
-            sc.nextLine();
-
+            int cmd = readInt(sc);
             if (cmd == 0) break;
-
             switch (cmd) {
-                // --- Player ---
-                case 1:
-                    System.out.print("Username: "); String pn = sc.nextLine();
-                    System.out.print("Rank: "); String pr = sc.nextLine();
-                    System.out.print("WinRate(%): "); double pw = sc.nextDouble();
-                    System.out.print("Matches: "); int pm = sc.nextInt(); sc.nextLine();
-                    DataManager.addPlayer(data, pn, pr, pw, pm);
-                    break;
-                case 2:
-                    System.out.print("Player to delete: ");
-                    DataManager.removePlayer(data, sc.nextLine());
-                    break;
-                case 3:
-                    System.out.print("Player to modify: ");
-                    String mpn = sc.nextLine();
-                    System.out.print("New rank: "); String mpr = sc.nextLine();
-                    System.out.print("New WinRate(%): "); double mpw = sc.nextDouble();
-                    System.out.print("New matches: "); int mpm = sc.nextInt(); sc.nextLine();
-                    DataManager.modifyPlayer(data, mpn, mpr, mpw, mpm);
-                    break;
-                // --- Hero ---
-                case 4:
-                    System.out.print("Hero name: "); String hn = sc.nextLine();
-                    System.out.print("Role (WARRIOR/MAGE/ASSASSIN/TANK/MARKSMAN/SUPPORT): ");
-                    HeroRole hr = HeroRole.valueOf(sc.nextLine().toUpperCase());
-                    System.out.print("HP ATK DEF (space-separated): ");
-                    int hhp = sc.nextInt(); int ha = sc.nextInt(); int hd = sc.nextInt(); sc.nextLine();
-                    DataManager.addHero(data, hn, hr, hhp, ha, hd);
-                    break;
-                case 5:
-                    System.out.print("Hero to delete: ");
-                    DataManager.removeHero(data, sc.nextLine());
-                    break;
-                case 6:
-                    System.out.print("Hero to modify: ");
-                    String mhn = sc.nextLine();
-                    System.out.print("New role (WARRIOR/MAGE/ASSASSIN/TANK/MARKSMAN/SUPPORT): ");
-                    HeroRole mhr = HeroRole.valueOf(sc.nextLine().toUpperCase());
-                    System.out.print("New HP ATK DEF (space-separated): ");
-                    int mhhp = sc.nextInt(); int mha = sc.nextInt(); int mhd = sc.nextInt(); sc.nextLine();
-                    DataManager.modifyHero(data, mhn, mhr, mhhp, mha, mhd);
-                    break;
-                // --- Equipment ---
-                case 7:
-                    System.out.print("Equipment name: "); String en = sc.nextLine();
-                    System.out.print("Type (ATTACK/DEFENSE/MAGIC/MOVEMENT/JUNGLE): ");
-                    EquipmentType et = EquipmentType.valueOf(sc.nextLine().toUpperCase());
-                    System.out.print("ATK DEF HP Price (space-separated): ");
-                    int ea = sc.nextInt(); int ed = sc.nextInt(); int eh = sc.nextInt(); int ep = sc.nextInt(); sc.nextLine();
-                    DataManager.addEquipment(data, en, et, ea, ed, eh, ep);
-                    break;
-                case 8:
-                    System.out.print("Equipment to delete: ");
-                    DataManager.removeEquipment(data, sc.nextLine());
-                    break;
-                case 9:
-                    System.out.print("Equipment to modify: ");
-                    String men = sc.nextLine();
-                    System.out.print("New type (ATTACK/DEFENSE/MAGIC/MOVEMENT/JUNGLE): ");
-                    EquipmentType met = EquipmentType.valueOf(sc.nextLine().toUpperCase());
-                    System.out.print("New ATK DEF HP Price (space-separated): ");
-                    int mea = sc.nextInt(); int med = sc.nextInt(); int meh = sc.nextInt(); int mep = sc.nextInt(); sc.nextLine();
-                    DataManager.modifyEquipment(data, men, met, mea, med, meh, mep);
-                    break;
-                // --- Team ---
-                case 10:
-                    System.out.print("Team name: ");
-                    DataManager.addTeam(data, sc.nextLine());
-                    break;
-                case 11:
-                    System.out.print("Team to delete: ");
-                    DataManager.removeTeam(data, sc.nextLine());
-                    break;
-                case 12:
-                    System.out.print("Team to modify: ");
-                    String mtn = sc.nextLine();
-                    System.out.print("New wins: "); int mw = sc.nextInt();
-                    System.out.print("New losses: "); int ml = sc.nextInt(); sc.nextLine();
-                    DataManager.modifyTeam(data, mtn, mw, ml);
-                    break;
-                // --- Match Record ---
-                case 13:
-                    System.out.println("Select both teams:");
-                    List<Team> teams = data.getTeams();
-                    for (int i = 0; i < teams.size(); i++) {
-                        System.out.println("  " + (i+1) + ". " + teams.get(i).getTeamName());
-                    }
-                    System.out.print("Team A (number): ");
-                    int taIdx = sc.nextInt() - 1; sc.nextLine();
-                    System.out.print("Team B (number): ");
-                    int tbIdx = sc.nextInt() - 1; sc.nextLine();
-                    if (taIdx >= 0 && taIdx < teams.size() && tbIdx >= 0 && tbIdx < teams.size() && taIdx != tbIdx) {
-                        System.out.print("Score A: "); int sa = sc.nextInt();
-                        System.out.print("Score B: "); int sb = sc.nextInt(); sc.nextLine();
-                        DataManager.addMatchRecord(data, teams.get(taIdx), teams.get(tbIdx), sa, sb, java.time.LocalDate.now());
-                    } else {
-                        System.out.println("Invalid team selection.");
-                    }
-                    break;
-                case 14:
-                    System.out.print("Match record ID to delete (e.g. M01): ");
-                    DataManager.removeMatchRecord(data, sc.nextLine());
-                    break;
-                default:
-                    System.out.println("Invalid choice.");
+                case 1: case 2: case 3: handlePlayerCrud(sc, data, cmd); break;
+                case 4: case 5: case 6: handleHeroCrud(sc, data, cmd); break;
+                case 7: case 8: case 9: handleEquipmentCrud(sc, data, cmd); break;
+                case 10: case 11: case 12: handleTeamCrud(sc, data, cmd); break;
+                case 13: case 14: handleMatchCrud(sc, data, cmd); break;
+                default: System.out.println("Invalid choice.");
             }
         }
+    }
+
+    private static void handlePlayerCrud(Scanner sc, GameData data, int cmd) {
+        switch (cmd) {
+            case 1:
+                System.out.println(DataManager.addPlayer(data,
+                        readLine(sc, "Username: "), readLine(sc, "Rank: "),
+                        readDoublePrompt(sc, "WinRate(%): "), readIntPrompt(sc, "Matches: ")));
+                break;
+            case 2:
+                System.out.println(DataManager.removePlayer(data, readLine(sc, "Player to delete: ")));
+                break;
+            case 3:
+                System.out.println(DataManager.modifyPlayer(data,
+                        readLine(sc, "Player to modify: "), readLine(sc, "New rank: "),
+                        readDoublePrompt(sc, "New WinRate(%): "), readIntPrompt(sc, "New matches: ")));
+                break;
+        }
+    }
+
+    private static void handleHeroCrud(Scanner sc, GameData data, int cmd) {
+        switch (cmd) {
+            case 4:
+                String hn = readLine(sc, "Hero name: ");
+                System.out.print("Role (WARRIOR/MAGE/ASSASSIN/TANK/MARKSMAN/SUPPORT): ");
+                HeroRole hr = HeroRole.valueOf(sc.nextLine().toUpperCase());
+                System.out.println(DataManager.addHero(data, hn, hr,
+                        readIntPrompt(sc, "HP: "), readIntPrompt(sc, "ATK: "), readIntPrompt(sc, "DEF: ")));
+                break;
+            case 5:
+                System.out.println(DataManager.removeHero(data, readLine(sc, "Hero to delete: ")));
+                break;
+            case 6:
+                String mhn = readLine(sc, "Hero to modify: ");
+                System.out.print("New role (WARRIOR/MAGE/ASSASSIN/TANK/MARKSMAN/SUPPORT): ");
+                HeroRole mhr = HeroRole.valueOf(sc.nextLine().toUpperCase());
+                System.out.println(DataManager.modifyHero(data, mhn, mhr,
+                        readIntPrompt(sc, "New HP: "), readIntPrompt(sc, "New ATK: "), readIntPrompt(sc, "New DEF: ")));
+                break;
+        }
+    }
+
+    private static void handleEquipmentCrud(Scanner sc, GameData data, int cmd) {
+        switch (cmd) {
+            case 7:
+                String en = readLine(sc, "Equipment name: ");
+                System.out.print("Type (ATTACK/DEFENSE/MAGIC/MOVEMENT/JUNGLE): ");
+                EquipmentType et = EquipmentType.valueOf(sc.nextLine().toUpperCase());
+                System.out.println(DataManager.addEquipment(data, en, et,
+                        readIntPrompt(sc, "ATK: "), readIntPrompt(sc, "DEF: "),
+                        readIntPrompt(sc, "HP: "), readIntPrompt(sc, "Price: ")));
+                break;
+            case 8:
+                System.out.println(DataManager.removeEquipment(data, readLine(sc, "Equipment to delete: ")));
+                break;
+            case 9:
+                String men = readLine(sc, "Equipment to modify: ");
+                System.out.print("New type (ATTACK/DEFENSE/MAGIC/MOVEMENT/JUNGLE): ");
+                EquipmentType met = EquipmentType.valueOf(sc.nextLine().toUpperCase());
+                System.out.println(DataManager.modifyEquipment(data, men, met,
+                        readIntPrompt(sc, "New ATK: "), readIntPrompt(sc, "New DEF: "),
+                        readIntPrompt(sc, "New HP: "), readIntPrompt(sc, "New Price: ")));
+                break;
+        }
+    }
+
+    private static void handleTeamCrud(Scanner sc, GameData data, int cmd) {
+        switch (cmd) {
+            case 10:
+                System.out.println(DataManager.addTeam(data, readLine(sc, "Team name: ")));
+                break;
+            case 11:
+                System.out.println(DataManager.removeTeam(data, readLine(sc, "Team to delete: ")));
+                break;
+            case 12:
+                System.out.println(DataManager.modifyTeam(data,
+                        readLine(sc, "Team to modify: "),
+                        readIntPrompt(sc, "New wins: "), readIntPrompt(sc, "New losses: ")));
+                break;
+        }
+    }
+
+    private static void handleMatchCrud(Scanner sc, GameData data, int cmd) {
+        switch (cmd) {
+            case 13:
+                List<Team> teams = data.getTeams();
+                System.out.println("Select both teams:");
+                for (int i = 0; i < teams.size(); i++)
+                    System.out.println("  " + (i+1) + ". " + teams.get(i).getTeamName());
+                int taIdx = readIntPrompt(sc, "Team A (number): ") - 1;
+                int tbIdx = readIntPrompt(sc, "Team B (number): ") - 1;
+                if (taIdx >= 0 && taIdx < teams.size() && tbIdx >= 0 && tbIdx < teams.size() && taIdx != tbIdx) {
+                    System.out.println(DataManager.addMatchRecord(data,
+                            teams.get(taIdx), teams.get(tbIdx),
+                            readIntPrompt(sc, "Score A: "), readIntPrompt(sc, "Score B: "), LocalDate.now()));
+                } else System.out.println("Invalid team selection.");
+                break;
+            case 14:
+                System.out.println(DataManager.removeMatchRecord(data, readLine(sc, "Match record ID to delete (e.g. M01): ")));
+                break;
+        }
+    }
+
+    private static int readIntPrompt(Scanner sc, String prompt) {
+        System.out.print(prompt);
+        return readInt(sc);
+    }
+
+    private static double readDoublePrompt(Scanner sc, String prompt) {
+        System.out.print(prompt);
+        return readDouble(sc);
     }
 }

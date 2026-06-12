@@ -1,10 +1,9 @@
 package model;
 
-import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Objects;
 
-public class MatchRecord implements Serializable, Identifiable {
-    private static final long serialVersionUID = 1L;
+public class MatchRecord implements Identifiable {
     private String id;
     private Team teamA;
     private Team teamB;
@@ -42,4 +41,17 @@ public class MatchRecord implements Serializable, Identifiable {
     public void setScoreB(int scoreB) { this.scoreB = scoreB; }
     public LocalDate getMatchDate() { return matchDate; }
     public void setMatchDate(LocalDate matchDate) { this.matchDate = matchDate; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MatchRecord that = (MatchRecord) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }

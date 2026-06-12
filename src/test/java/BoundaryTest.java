@@ -25,10 +25,10 @@ import java.util.stream.Stream;
 public class BoundaryTest {
 
     // ================================================================
-    //  P1: rankToScore(String) — String → int mapping
+    //  P1: rankToScore(String) 鈥?String 鈫?int mapping
     // ================================================================
     @Nested
-    @DisplayName("P1.1 rankToScore — rank-string to int mapping")
+    @DisplayName("P1.1 rankToScore 鈥?rank-string to int mapping")
     class RankToScoreTests {
 
         @ParameterizedTest(name = "rankToScore({0}) = {1}")
@@ -52,10 +52,10 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P1: scoreToRankName(double) — threshold boundary mapping
+    //  P1: scoreToRankName(double) 鈥?threshold boundary mapping
     // ================================================================
     @Nested
-    @DisplayName("P1.2 scoreToRankName — threshold boundary mapping")
+    @DisplayName("P1.2 scoreToRankName 鈥?threshold boundary mapping")
     class ScoreToRankNameTests {
 
         @ParameterizedTest(name = "scoreToRankName({0}) = {1}")
@@ -97,10 +97,10 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P1: equipScore(Equipment) — ATK*1.0 + DEF*0.8 + HP*0.6 - Price*0.001
+    //  P1: equipScore(Equipment) 鈥?ATK*1.0 + DEF*0.8 + HP*0.6 - Price*0.001
     // ================================================================
     @Nested
-    @DisplayName("P1.3 equipScore — composite equipment scoring")
+    @DisplayName("P1.3 equipScore 鈥?composite equipment scoring")
     class EquipScoreTests {
 
         @ParameterizedTest(name = "equipScore(ATK={0},DEF={1},HP={2},Price={3}) = {4}")
@@ -135,31 +135,31 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P1: playerScore(Player) — WR*1.0 + rankToScore*5.0 + matches*0.01
+    //  P1: playerScore(Player) 鈥?WR*1.0 + rankToScore*5.0 + matches*0.01
     // ================================================================
     @Nested
-    @DisplayName("P1.4 playerScore — composite player scoring")
+    @DisplayName("P1.4 playerScore 鈥?composite player scoring")
     class PlayerScoreTests {
 
         @ParameterizedTest(name = "playerScore(rank={0}, WR={1}, matches={2}) = {3}")
         @CsvSource({
-            // Zero everything: 0 + 1*5 + 0 = 5.0 (null rank → 1*5)
+            // Zero everything: 0 + 1*5 + 0 = 5.0 (null rank 鈫?1*5)
             "null,  0.0,   0,    5.0",
-            // Gold(1), WR=0, matches=0 → 0+5+0=5.0
+            // Gold(1), WR=0, matches=0 鈫?0+5+0=5.0
             "Gold,  0.0,   0,    5.0",
-            // Gold, WR=0.00001(L+), matches=0 → 5.00001
+            // Gold, WR=0.00001(L+), matches=0 鈫?5.00001
             "Gold,  0.00001, 0,  5.00001",
-            // King(5), WR=100.0(R), matches=0 → 100+25+0=125.0
+            // King(5), WR=100.0(R), matches=0 鈫?100+25+0=125.0
             "King,  100.0, 0,    125.0",
-            // King, WR=60, matches=MAX_VALUE → overflow potential
+            // King, WR=60, matches=MAX_VALUE 鈫?overflow potential
             // "King,  60.0,  2147483647, 21474836573.47",
-            // Gold, WR=80, matches=10 → 80+5+0.1=85.1
+            // Gold, WR=80, matches=10 鈫?80+5+0.1=85.1
             "Gold,  80.0,  10,   85.1",
-            // Star(4), WR=50, matches=50 → 50+20+0.5=70.5
+            // Star(4), WR=50, matches=50 鈫?50+20+0.5=70.5
             "Star,  50.0,  50,   70.5",
-            // Diamond(3), WR=40, matches=0 → 40+15+0=55.0
+            // Diamond(3), WR=40, matches=0 鈫?40+15+0=55.0
             "Diamond, 40.0, 0,   55.0",
-            // Platinum(2), WR=30, matches=0 → 30+10+0=40.0
+            // Platinum(2), WR=30, matches=0 鈫?30+10+0=40.0
             "Platinum, 30.0, 0,  40.0",
         })
         void playerScoreBoundaries(String rank, double wr, int matches, double expected) {
@@ -179,29 +179,29 @@ public class BoundaryTest {
     // ================================================================
     //  P1: calculateDamage(int atk, int def, boolean hasAtkEq, boolean hasDefEq, Random)
     //  Formula: base=max(1,atk-(int)(def*0.6)); dmg=base+rand(-5..+5);
-    //           crit(15%/20%)→*1.5; dodge(10%/15%)→0; final=max(1,dmg)
+    //           crit(15%/20%)鈫?1.5; dodge(10%/15%)鈫?; final=max(1,dmg)
     // ================================================================
     @Nested
-    @DisplayName("P1.5 calculateDamage — deterministic damage with seeded RNG")
+    @DisplayName("P1.5 calculateDamage 鈥?deterministic damage with seeded RNG")
     class CalculateDamageTests {
 
         // Known seeds produce predictable results:
-        // Seed 42: n11=7→+2, crit=63(>=15 false), dodge=48(>=10 false)
+        // Seed 42: n11=7鈫?2, crit=63(>=15 false), dodge=48(>=10 false)
         @ParameterizedTest(name = "Damage(atk={0},def={1},atkEq={2},defEq={3},seed={4}) = {5}")
         @CsvSource({
-            // ATK=0 def=0 tree: base=max(1,0-0)=1; seed42→+2=3
+            // ATK=0 def=0 tree: base=max(1,0-0)=1; seed42鈫?2=3
             "0,   0,   false, false, 42, 3",
-            // ATK=1 def=1 tree: base=max(1,1-0)=1; seed42→+2=3
+            // ATK=1 def=1 tree: base=max(1,1-0)=1; seed42鈫?2=3
             "1,   1,   false, false, 42, 3",
-            // ATK=100 def=50 tree: base=max(1,100-30)=70; seed42→+2=72
+            // ATK=100 def=50 tree: base=max(1,100-30)=70; seed42鈫?2=72
             "100, 50,  false, false, 42, 72",
-            // ATK=80 def=100 tree: base=max(1,80-60)=20; seed99(n11=3→-2,no crit,no dodge)=18
+            // ATK=80 def=100 tree: base=max(1,80-60)=20; seed99(n11=3鈫?2,no crit,no dodge)=18
             "80,  100, false, false, 99, 18",
-            // ATK=200 def=20 tree: base=max(1,200-12)=188; seed1(n11=4→-1)=187
+            // ATK=200 def=20 tree: base=max(1,200-12)=188; seed1(n11=4鈫?1)=187
             "200, 20,  false, false, 1,  187",
-            // With both equipment modifiers, seed123: n11=10→+5, crit=50(>=20 false), dodge=76(>=15 false)
+            // With both equipment modifiers, seed123: n11=10鈫?5, crit=50(>=20 false), dodge=76(>=15 false)
             "100, 50,  true,  true,  123,75",
-            // CRITICAL test: seed522 triggers crit(n11=2→-3, crit=1<15→×1.5): (70-3)*1.5=100
+            // CRITICAL test: seed522 triggers crit(n11=2鈫?3, crit=1<15鈫捗?.5): (70-3)*1.5=100
             "100, 50,  false, false, 522,100",
             // Very high def vs low ATK: base should floor to 1 at least
             "30,  200, false, false, 0,  1",
@@ -213,7 +213,7 @@ public class BoundaryTest {
         }
 
         @Test
-        @DisplayName("Higher defense → less damage (same seed)")
+        @DisplayName("Higher defense 鈫?less damage (same seed)")
         void higherDefLessDamage() {
             Random rngA = new Random(0);
             int lowDef = CombatSimulator.calculateDamage(100, 20, false, false, rngA);
@@ -223,9 +223,9 @@ public class BoundaryTest {
         }
 
         @Test
-        @DisplayName("ATK=1, DEF=2 — base floor edge: max(1, 1-1)=1, plus random")
+        @DisplayName("ATK=1, DEF=2 鈥?base floor edge: max(1, 1-1)=1, plus random")
         void baseFloorEdgeCase() {
-            // Seed 123: n11=10 → +5 → 1+5=6 (proves base floor is 1 not 0)
+            // Seed 123: n11=10 鈫?+5 鈫?1+5=6 (proves base floor is 1 not 0)
             int d = CombatSimulator.calculateDamage(1, 2, false, false, new Random(123));
             assertEquals(6, d);
         }
@@ -241,10 +241,10 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P1: equipScoreForHero(Equipment, Hero) — role-weighted scoring
+    //  P1: equipScoreForHero(Equipment, Hero) 鈥?role-weighted scoring
     // ================================================================
     @Nested
-    @DisplayName("P1.6 equipScoreForHero — role-adjusted equipment scoring")
+    @DisplayName("P1.6 equipScoreForHero 鈥?role-adjusted equipment scoring")
     class EquipScoreForHeroTests {
 
         static Equipment atkItem = new Equipment("ea", "ATK+50", EquipmentType.ATTACK, 50, 0, 0, 0);
@@ -333,10 +333,10 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P1: isSuitable(EquipmentType, HeroRole) — cross-product truth table
+    //  P1: isSuitable(EquipmentType, HeroRole) 鈥?cross-product truth table
     // ================================================================
     @Nested
-    @DisplayName("P1.7 isSuitable — equipment-hero compatibility matrix")
+    @DisplayName("P1.7 isSuitable 鈥?equipment-hero compatibility matrix")
     class IsSuitableTests {
 
         @ParameterizedTest(name = "isSuitable({0}, {1}) = {2}")
@@ -384,10 +384,10 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P2: DataManager CRUD — validation boundaries
+    //  P2: DataManager CRUD 鈥?validation boundaries
     // ================================================================
     @Nested
-    @DisplayName("P2.1 DataManager.addPlayer — validation boundaries")
+    @DisplayName("P2.1 DataManager.addPlayer 鈥?validation boundaries")
     class AddPlayerValidationTests {
 
         private GameData data;
@@ -398,16 +398,16 @@ public class BoundaryTest {
         }
 
         @Test
-        @DisplayName("null data — no crash")
+        @DisplayName("null data 鈥?no crash")
         void nullData() {
             assertDoesNotThrow(() -> DataManager.addPlayer(null, "test", "King", 50, 10));
         }
 
-        @ParameterizedTest(name = "name=''{0}'' → rejected")
+        @ParameterizedTest(name = "name=''{0}'' 鈫?rejected")
         @NullAndEmptySource
         @ValueSource(strings = {"  ", "\t", "\n"})
         void invalidNames(String name) {
-            data.getPlayers().add(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
+            data.addPlayer(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
             int sizeBefore = data.getPlayers().size();
             DataManager.addPlayer(data, name, "King", 50, 10);
             assertEquals(sizeBefore, data.getPlayers().size(), "No player should be added for invalid name");
@@ -424,7 +424,7 @@ public class BoundaryTest {
             "150.0, false",   // far above
         })
         void winRateBoundaries(double wr, boolean shouldAdd) {
-            data.getPlayers().add(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
+            data.addPlayer(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
             int sizeBefore = data.getPlayers().size();
             DataManager.addPlayer(data, "testWR", "Gold", wr, 10);
             if (shouldAdd) {
@@ -443,7 +443,7 @@ public class BoundaryTest {
             "100000, true",   // far above
         })
         void matchesBoundaries(int matches, boolean shouldAdd) {
-            data.getPlayers().add(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
+            data.addPlayer(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
             int sizeBefore = data.getPlayers().size();
             DataManager.addPlayer(data, "testMatches", "Gold", 50, matches);
             if (shouldAdd) {
@@ -463,7 +463,7 @@ public class BoundaryTest {
         @Test
         @DisplayName("addPlayer with NaN winRate rejected")
         void nanWinRateRejected() {
-            data.getPlayers().add(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
+            data.addPlayer(new Player("P01", "existing", "pw", Role.PLAYER, "Gold", 50, 5, null));
             int sizeBefore = data.getPlayers().size();
             DataManager.addPlayer(data, "nanWR", "Gold", Double.NaN, 10);
             assertEquals(sizeBefore, data.getPlayers().size(), "NaN winRate should be rejected");
@@ -471,7 +471,7 @@ public class BoundaryTest {
     }
 
     @Nested
-    @DisplayName("P2.2 DataManager.addHero — validation boundaries")
+    @DisplayName("P2.2 DataManager.addHero 鈥?validation boundaries")
     class AddHeroValidationTests {
 
         private GameData data;
@@ -479,10 +479,10 @@ public class BoundaryTest {
         @BeforeEach
         void setUp() {
             data = new GameData();
-            data.getHeroes().add(new Hero("H01", "Existing", HeroRole.WARRIOR, 3000, 100, 100));
+            data.addHero(new Hero("H01", "Existing", HeroRole.WARRIOR, 3000, 100, 100));
         }
 
-        @ParameterizedTest(name = "addHero name=''{0}'' → rejected")
+        @ParameterizedTest(name = "addHero name=''{0}'' 鈫?rejected")
         @NullAndEmptySource
         @ValueSource(strings = {"  "})
         void invalidNames(String name) {
@@ -491,9 +491,9 @@ public class BoundaryTest {
             assertEquals(sizeBefore, data.getHeroes().size());
         }
 
-        @ParameterizedTest(name = "addHero ({1},{2},{3}) → rejected={4}")
+        @ParameterizedTest(name = "addHero ({1},{2},{3}) 鈫?rejected={4}")
         @CsvSource({
-            "-1, 100, 100, true",    // HP < 0 → negative
+            "-1, 100, 100, true",    // HP < 0 鈫?negative
             "1,  -1,  100, true",    // ATK < 0
             "1, 100,  -1,  true",    // DEF < 0
             "0,   0,   0,  false",   // L: all zero (allowed: stats cannot be *negative*)
@@ -512,7 +512,7 @@ public class BoundaryTest {
     }
 
     @Nested
-    @DisplayName("P2.3 DataManager.addEquipment — validation boundaries")
+    @DisplayName("P2.3 DataManager.addEquipment 鈥?validation boundaries")
     class AddEquipmentValidationTests {
 
         private GameData data;
@@ -520,10 +520,10 @@ public class BoundaryTest {
         @BeforeEach
         void setUp() {
             data = new GameData();
-            data.getEquipments().add(new Equipment("E01", "Existing", EquipmentType.ATTACK, 100, 0, 0, 1000));
+            data.addEquipment(new Equipment("E01", "Existing", EquipmentType.ATTACK, 100, 0, 0, 1000));
         }
 
-        @ParameterizedTest(name = "addEquipment name=''{0}'' → rejected")
+        @ParameterizedTest(name = "addEquipment name=''{0}'' 鈫?rejected")
         @NullAndEmptySource
         void invalidNames(String name) {
             int sizeBefore = data.getEquipments().size();
@@ -531,7 +531,7 @@ public class BoundaryTest {
             assertEquals(sizeBefore, data.getEquipments().size());
         }
 
-        @ParameterizedTest(name = "addEquipment price={0} → allowed={1}")
+        @ParameterizedTest(name = "addEquipment price={0} 鈫?allowed={1}")
         @CsvSource({
             "-1,  false",  // L-1
             "0,   true",   // L
@@ -549,7 +549,7 @@ public class BoundaryTest {
             }
         }
 
-        @ParameterizedTest(name = "addEquipment ({0},{1},{2}) → rejected={3}")
+        @ParameterizedTest(name = "addEquipment ({0},{1},{2}) 鈫?rejected={3}")
         @CsvSource({
             "-1,   0,   0,  true",
             "0,   -1,   0,  true",
@@ -568,14 +568,14 @@ public class BoundaryTest {
     }
 
     @Nested
-    @DisplayName("P2.4 DataManager.addTeam — validation boundaries")
+    @DisplayName("P2.4 DataManager.addTeam 鈥?validation boundaries")
     class AddTeamValidationTests {
 
         @Test
         @DisplayName("null or empty team name rejected")
         void nullOrEmptyTeamName() {
             GameData data = new GameData();
-            data.getTeams().add(new Team("T01", "Existing", 0, 0));
+            data.addTeam(new Team("T01", "Existing", 0, 0));
             int sizeBefore = data.getTeams().size();
             DataManager.addTeam(data, null);
             DataManager.addTeam(data, "");
@@ -585,7 +585,7 @@ public class BoundaryTest {
     }
 
     @Nested
-    @DisplayName("P2.5 DataManager.addMatchRecord — null team validation")
+    @DisplayName("P2.5 DataManager.addMatchRecord 鈥?null team validation")
     class AddMatchRecordValidationTests {
 
         @Test
@@ -593,7 +593,7 @@ public class BoundaryTest {
         void nullTeamsRejected() {
             GameData data = new GameData();
             Team t = new Team("T01", "Team", 0, 0);
-            data.getTeams().add(t);
+            data.addTeam(t);
             int sizeBefore = data.getMatchRecords().size();
 
             DataManager.addMatchRecord(data, null, t, 1, 1, java.time.LocalDate.now());
@@ -605,14 +605,14 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P3: Helper — nextId (auto-increment ID generator)
+    //  P3: Helper 鈥?nextId (auto-increment ID generator)
     // ================================================================
     @Nested
-    @DisplayName("P3.1 nextId — ID auto-increment boundary")
+    @DisplayName("P3.1 nextId 鈥?ID auto-increment boundary")
     class NextIdTests {
 
         @Test
-        @DisplayName("Empty list → prefix+01")
+        @DisplayName("Empty list 鈫?prefix+01")
         void emptyListReturns01() {
             // nextId is private; we test via add operations and check generated IDs
             GameData data = new GameData();
@@ -652,12 +652,13 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P3: Search — findPlayerByName, findHeroByName, findTeamByName
+    //  P3: Search 鈥?findPlayerByName, findHeroByName, findTeamByName
     // ================================================================
     @Nested
-    @DisplayName("P3.2 SearchService — null/empty input boundaries")
+    @DisplayName("P3.2 SearchService 鈥?null/empty input boundaries")
     class SearchServiceBoundaries {
 
+        private final Searchable ss = new SearchService();
         private GameData fullData;
 
         @BeforeEach
@@ -668,55 +669,55 @@ public class BoundaryTest {
         @Test
         @DisplayName("findPlayerByName(null) no crash")
         void findPlayerNull() {
-            assertDoesNotThrow(() -> SearchService.findPlayerByName(fullData, null));
+            assertDoesNotThrow(() -> ss.findPlayerByName(fullData, null));
         }
 
         @Test
         @DisplayName("findPlayerByName(empty) no crash")
         void findPlayerEmpty() {
-            assertDoesNotThrow(() -> SearchService.findPlayerByName(fullData, ""));
+            assertDoesNotThrow(() -> ss.findPlayerByName(fullData, ""));
         }
 
         @Test
         @DisplayName("findPlayerByName(non-existent) no crash")
         void findPlayerNonExistent() {
-            assertDoesNotThrow(() -> SearchService.findPlayerByName(fullData, "zzz_nobody_xyz"));
+            assertDoesNotThrow(() -> ss.findPlayerByName(fullData, "zzz_nobody_xyz"));
         }
 
         @Test
         @DisplayName("findHeroByName(null) no crash")
         void findHeroNull() {
-            assertDoesNotThrow(() -> SearchService.findHeroByName(fullData, null));
+            assertDoesNotThrow(() -> ss.findHeroByName(fullData, null));
         }
 
         @Test
         @DisplayName("findHeroByName(empty) no crash")
         void findHeroEmpty() {
-            assertDoesNotThrow(() -> SearchService.findHeroByName(fullData, ""));
+            assertDoesNotThrow(() -> ss.findHeroByName(fullData, ""));
         }
 
         @Test
         @DisplayName("findTeamByName(null) no crash")
         void findTeamNull() {
-            assertDoesNotThrow(() -> SearchService.findTeamByName(fullData, null));
+            assertDoesNotThrow(() -> ss.findTeamByName(fullData, null));
         }
 
         @Test
         @DisplayName("showMatchHistory(null input) no crash")
         void matchHistoryNull() {
-            assertDoesNotThrow(() -> SearchService.showMatchHistory(fullData, null));
+            assertDoesNotThrow(() -> ss.showMatchHistory(fullData, null));
         }
 
         @Test
         @DisplayName("showEquipmentRanking(null) no crash")
         void equipRankingNull() {
-            assertDoesNotThrow(() -> SearchService.showEquipmentRanking(null));
+            assertDoesNotThrow(() -> ss.showEquipmentRanking(null));
         }
 
         @Test
         @DisplayName("showLeaderboard(null) no crash")
         void leaderboardNull() {
-            assertDoesNotThrow(() -> SearchService.showLeaderboard(null));
+            assertDoesNotThrow(() -> ss.showLeaderboard(null));
         }
     }
 
@@ -724,18 +725,18 @@ public class BoundaryTest {
     //  P3: RecommendationService boundaries
     // ================================================================
     @Nested
-    @DisplayName("P3.3 RecommendationService — edge case boundaries")
+    @DisplayName("P3.3 RecommendationService 鈥?edge case boundaries")
     class RecommendationServiceBoundaries {
 
         @Test
-        @DisplayName("getRecommendedHeroesForPlayer null data → empty list")
+        @DisplayName("getRecommendedHeroesForPlayer null data 鈫?empty list")
         void nullDataReturnsEmpty() {
             List<Hero> result = RecommendationService.getRecommendedHeroesForPlayer(null, "any");
             assertTrue(result.isEmpty());
         }
 
         @Test
-        @DisplayName("getRecommendedHeroesForPlayer null player → empty list")
+        @DisplayName("getRecommendedHeroesForPlayer null player 鈫?empty list")
         void nullPlayerReturnsEmpty() {
             GameData data = new GameData();
             List<Hero> result = RecommendationService.getRecommendedHeroesForPlayer(data, "unknown");
@@ -743,7 +744,7 @@ public class BoundaryTest {
         }
 
         @Test
-        @DisplayName("getRecommendedHeroesForPlayer fully covered roles → empty list")
+        @DisplayName("getRecommendedHeroesForPlayer fully covered roles 鈫?empty list")
         void fullCoverageReturnsEmpty() {
             GameData data = new GameData();
             Player p = new Player("p1", "fullCover", "pw", Role.PLAYER, "Gold", 50, 5, null);
@@ -758,29 +759,29 @@ public class BoundaryTest {
             };
             for (Hero h : all) {
                 p.getHeroPool().add(h);
-                data.getHeroes().add(h);
+                data.addHero(h);
             }
-            data.getPlayers().add(p);
+            data.addPlayer(p);
 
             List<Hero> result = RecommendationService.getRecommendedHeroesForPlayer(data, "fullCover");
             assertTrue(result.isEmpty(), "Should be empty when all roles covered");
         }
 
         @Test
-        @DisplayName("recommendEquipmentForHero null data → no crash")
+        @DisplayName("recommendEquipmentForHero null data 鈫?no crash")
         void recommendEquipmentNull() {
             assertDoesNotThrow(() -> RecommendationService.recommendEquipmentForHero(null, "any"));
         }
 
         @Test
-        @DisplayName("recommendEquipmentForHero unknown hero → no crash")
+        @DisplayName("recommendEquipmentForHero unknown hero 鈫?no crash")
         void recommendEquipmentUnknownHero() {
             GameData data = DataInitializer.initAll();
             assertDoesNotThrow(() -> RecommendationService.recommendEquipmentForHero(data, "NotAHero"));
         }
 
         @Test
-        @DisplayName("recommendHeroesForPlayer unknown player → no crash")
+        @DisplayName("recommendHeroesForPlayer unknown player 鈫?no crash")
         void recommendHeroesUnknownPlayer() {
             GameData data = DataInitializer.initAll();
             assertDoesNotThrow(() -> RecommendationService.recommendHeroesForPlayer(data, "unknown_player"));
@@ -788,20 +789,20 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  CombatSimulator.simulate — null/missing hero boundaries
+    //  CombatSimulator.simulate 鈥?null/missing hero boundaries
     // ================================================================
     @Nested
-    @DisplayName("P3.4 CombatSimulator — null/missing hero resilience")
+    @DisplayName("P3.4 CombatSimulator 鈥?null/missing hero resilience")
     class CombatSimulatorBoundaries {
 
         @Test
-        @DisplayName("simulate null data → no crash")
+        @DisplayName("simulate null data 鈫?no crash")
         void nullData() {
             assertDoesNotThrow(() -> CombatSimulator.simulate(null, "A", "B"));
         }
 
         @Test
-        @DisplayName("simulate non-existent hero → no crash")
+        @DisplayName("simulate non-existent hero 鈫?no crash")
         void nonExistentHero() {
             GameData data = DataInitializer.initAll();
             assertDoesNotThrow(() -> CombatSimulator.simulate(data, "GhostHero", "Lu Bu"));
@@ -814,20 +815,21 @@ public class BoundaryTest {
     //  Team winRate boundary (division by zero guard)
     // ================================================================
     @Test
-    @DisplayName("Team with 0W 0L → win rate division by zero guard")
+    @DisplayName("Team with 0W 0L 鈫?win rate division by zero guard")
     void zeroWinZeroLossTeam() {
         GameData data = new GameData();
         Team zero = new Team("T99", "ZeroTeam", 0, 0);
-        data.getTeams().add(zero);
+        data.addTeam(zero);
         // findTeamByName calls: wr = wins+losses>0 ? wins/(wins+losses)*100 : 0
-        assertDoesNotThrow(() -> SearchService.findTeamByName(data, "ZeroTeam"));
+        Searchable searchable = new SearchService();
+        assertDoesNotThrow(() -> searchable.findTeamByName(data, "ZeroTeam"));
     }
 
     // ================================================================
     //  FilePersistence boundaries
     // ================================================================
     @Nested
-    @DisplayName("P3.5 FilePersistence — save/load boundaries")
+    @DisplayName("P3.5 FilePersistence 鈥?save/load boundaries")
     class FilePersistenceBoundaries {
 
         @Test
@@ -848,10 +850,10 @@ public class BoundaryTest {
     }
 
     // ================================================================
-    //  P3: Team equals/hashCode — boundary: null id consistency
+    //  P3: Team equals/hashCode 鈥?boundary: null id consistency
     // ================================================================
     @Nested
-    @DisplayName("P3.6 Team — equals/hashCode with null id")
+    @DisplayName("P3.6 Team 鈥?equals/hashCode with null id")
     class TeamEqualsTests {
 
         @Test
@@ -888,3 +890,4 @@ public class BoundaryTest {
         }
     }
 }
+
