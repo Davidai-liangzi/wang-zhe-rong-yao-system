@@ -7,7 +7,7 @@ Build a Java OOP-based Honor of Kings information management system that provide
 The system must implement eight core functional modules: player lookup, team overview, hero details, equipment statistics, match history, leaderboard, data management, and authentication.
 
 ## 3. Java Concepts Used
-The project uses inheritance (Person→Player/Admin), interface (Identifiable, implemented by all model classes), polymorphism (List<Identifiable> for generic queries), collections (ArrayList, List, Stream API), exception handling (try-with-resources), file I/O (ObjectOutputStream/ObjectInputStream serialization), enums (HeroRole, EquipmentType, Role), and abstract class (Person).
+The project uses inheritance (Person→Player/Admin), interface (Identifiable, implemented by all model classes), polymorphism (List<Identifiable> for generic queries), collections (ArrayList, List, Stream API), exception handling (try-with-resources), file I/O (JSON read/write with Persistable interface), enums (HeroRole, EquipmentType, Role), and abstract class (Person).
 
 ## 4. Class Design
 
@@ -133,7 +133,7 @@ The project uses inheritance (Person→Player/Admin), interface (Identifiable, i
 - Admin business logic implemented in service-layer DataManager
 
 ## 6. Data Design
-Initial dataset contains 15 players (5 per team), 15 heroes (each linked to 2-4 compatible equipment items), 20 equipment items, 3 teams, and 10 match records. Data is persisted via Java serialization (ObjectOutputStream) to data.ser file. On startup, loads from file first; falls back to DataInitializer hard-coded data on failure.
+Initial dataset contains 15 players (5 per team), 15 heroes (each linked to 2-4 compatible equipment items), 20 equipment items, 3 teams, and 10 match records. Data is persisted via JSON to data.json file. On startup, loads from file first; falls back to DataInitializer hard-coded data on failure.
 
 ## 7. AI Usage Plan
 
@@ -185,7 +185,7 @@ Following the 8-stage workflow recommended in the coursework specification (Sect
 | **Stage 3** | Implement model classes (Person, Player, Admin, Hero, Equipment, Team, MatchRecord), enums, Identifiable interface, and hard-coded initial data | All model classes + DataInitializer + GameData container | Completed |
 | **Stage 4** | Implement console menu system and all search/query features (player lookup, team overview, hero details, equipment stats, match history, leaderboard) | SearchService.java, Main.java menu loop | Completed |
 | **Stage 5** | Implement authentication (Admin/Player dual-role login with username+password, 3-attempt limit) and permission-based access control | Authentication in Main.java, permission checks | Completed |
-| **Stage 6** | Implement file persistence (serialization) and ranking/leaderboard functions | FilePersistence.java, data.ser auto-save/load | Completed |
+| **Stage 6** | Implement file persistence (JSON) and ranking/leaderboard functions | JsonPersistence.java, data.json auto-save/load | Completed |
 | **Stage 7** | Use Testing/Reviewer Agent to find bugs; write manual test cases; execute all tests; fix bugs and record decisions | test-cases.md (23 cases), TestRunner.java, BoundaryTest.java | Completed |
 | **Stage 8** | Finish documentation (design.md, README.md), complete reflection.md, export Git history, conduct mutation testing (20 mutants), final compilation verification | All documentation files, mutation_result.txt, git-history.txt | Completed |
 
@@ -207,7 +207,7 @@ Manual test cases written for each core function, recorded in docs/test-cases.md
 | **AI generates code that compiles but is logically wrong** | High | Medium | Incremental compilation and manual testing after every AI response; never accept a large batch of code at once; verify edge cases independently |
 | **AI hallucinates non-existent methods or APIs** | Medium | Medium | Immediately compile with `javac` after generation; if error, ask AI to fix or fix manually; always cross-reference with official Java documentation |
 | **Scanner input buffer issues (newline left by nextInt)** | Medium | High | Add `sc.nextLine()` after every `nextInt()`/`nextDouble()` call; wrap input in try-catch for type mismatches |
-| **Serialization backward-compatibility broken after class changes** | Low | Medium | Delete `data.ser` when class structure changes; fall back to DataInitializer on deserialization failure (already implemented in FilePersistence) |
+| **Serialization backward-compatibility broken after class changes** | Low | Medium | Delete `data.json` when class structure changes; fall back to DataInitializer on deserialization failure (already implemented in JsonPersistence) |
 | **Debugging AI-generated code takes longer than expected** | Medium | Medium | Time-box each debugging session to 30 minutes; if unresolved, commit the broken version with [Fix] prefix, switch to another feature, and return with fresh perspective |
 | **Git history becomes messy with AI-generated commits mixed with human changes** | Low | Low | Strict commit message prefix discipline: [Human], [AI-Architect], [AI-Implementation], [AI-Review], [Test], [Fix], [Docs]; commit after each meaningful change, not in bulk |
 | **Chinese character encoding issues in console output** | Low | Medium | Compile with `-encoding UTF-8`; document workaround in README; consider redirecting output to file for verification |
@@ -222,4 +222,4 @@ See ai/reflection.md
 | 10.1 Combat Simulation | `CombatSimulator.java` | Turn-based combat: damage formula max(1, ATK - DEF*0.6) ±5, 15% crit (×1.5), 10% dodge, equipment bonuses affect probabilities, full battle log |
 | 10.2 Recommendation Engine | `RecommendationService.java` | Equipment recommendation: role-adjusted scoring weights (Warrior ATK×1.5/Tank DEF×1.5); Hero recommendation: role gap analysis to suggest missing-role heroes |
 | 10.3 GUI | `GameGUI.java` | Swing JTabbedPane, 7 tabs covering all features (player/team/hero/equipment/leaderboard/combat/recommend), System.out redirected to JTextArea |
-| 10.4 Data Persistence | `FilePersistence.java` | Java serialization to data.ser, auto-load on startup |
+| 10.4 Data Persistence | `JsonPersistence.java` | JSON persistence to data.json, auto-load on startup |

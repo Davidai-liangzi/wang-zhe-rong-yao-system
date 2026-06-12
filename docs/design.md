@@ -4,7 +4,7 @@
 
 This project is a Honor of Kings information management system using a layered architecture:
 - **model layer**: Data model classes (Person, Player, Admin, Hero, Equipment, Team, MatchRecord)
-- **service layer**: Business logic classes (DataInitializer, DataManager, SearchService, FilePersistence, CombatSimulator, RecommendationService)
+- **service layer**: Business logic classes (DataInitializer, DataManager, SearchService, FilePersistence, JsonPersistence, CombatSimulator, RecommendationService)
 - **presentation layer**: Main.java console menu / GameGUI.java Swing interface
 
 ## Class Diagram
@@ -56,7 +56,7 @@ Person (abstract, implements Identifiable)
 ## Data Flow
 
 ```
-Startup → FilePersistence.loadData() → load GameData on success
+Startup → Persistable.load() (JsonPersistence) → load GameData on success
                               └──→ DataInitializer.initAll() on failure
                                      ↓
                               Main.java menu loop
@@ -65,7 +65,7 @@ Startup → FilePersistence.loadData() → load GameData on success
                               │ DataManager       │ CRUD
                               └──────────────────┘
                                      ↓
-Exit → FilePersistence.saveData() → write to data.ser
+Exit → Persistable.save() (JsonPersistence) → write to data.json
 ```
 
 ## Service Layer Architecture
@@ -77,7 +77,7 @@ Exit → FilePersistence.saveData() → write to data.ser
 | `DataInitializer` | Hard-code initialization of all data (15 players, 15 heroes, 20 equipment, 3 teams, 10 matches), build complete GameData object graph | Factory (static factory method `initAll()`) |
 | `SearchService` | All query functions: player lookup, team overview, hero details, equipment ranking, match history, leaderboard. Uses Stream API for filtering and sorting | Facade (unified query entry point) |
 | `DataManager` | Admin CRUD operations: covers players, heroes, equipment, teams, match records. Operates on in-memory GameData, returns operation result messages | Command (each operation is an independent static method) |
-| `FilePersistence` | Serialization persistence: `loadData()` deserializes from data.ser, `saveData()` serializes to data.ser. Graceful degradation on error | Adapter (adapts object graph to byte stream) |
+| `FilePersistence` | JSON persistence facade: delegates to `Persistable` interface (JsonPersistence). `loadData()` reads from data.json, `saveData()` writes to data.json. Graceful degradation on error | Adapter (adapts object graph to JSON) |
 | `CombatSimulator` | Turn-based battle: hero stats + equipment, damage formula, crit/dodge with equipment modifiers, full battle log | Strategy |
 | `RecommendationService` | Equipment recommendation (role-adjusted scoring) + Hero recommendation (role gap analysis) | Strategy |
 
@@ -93,7 +93,7 @@ Exit → FilePersistence.saveData() → write to data.ser
 | `SearchService.showMatchHistory` | GameData + player/team name | Print last 5 matches | None (read-only) |
 | `DataManager.add*/remove*/modify*` | GameData + entity attributes | Print success/failure | Modifies GameData lists |
 | `FilePersistence.loadData` | None (read file) | GameData or null | None |
-| `FilePersistence.saveData` | GameData | None | Writes data.ser file |
+| `FilePersistence.saveData` | GameData | None | Writes data.json file |
 
 ### Design Principles
 
@@ -108,4 +108,4 @@ Exit → FilePersistence.saveData() → write to data.ser
 2. **Hero-Equipment Association**: Hero model directly linked to compatibleEquipments list, displayed in both player lookup and hero details
 3. **Data Expansion**: 5 players per team, 3 heroes per player, meeting assignment minimum requirements with richer data
 4. **ID System**: Unified P/H/E/T/M prefix + sequence number format, making management and referencing easier
-5. **Serialization Persistence**: Java native ObjectOutputStream approach, simple and reliable for this project's scale
+5. **JSON Persistence**: JSON-based custom serialization approach, simple and reliable for this project's scale

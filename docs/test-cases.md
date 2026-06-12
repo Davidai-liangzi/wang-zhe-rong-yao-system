@@ -181,9 +181,9 @@
 |-------|---------|
 | **ID** | TC-13 |
 | **Module** | File Persistence |
-| **Input** | Delete data.ser -> Start program (admin) -> Add player "persist_test" -> Exit (auto-save) -> Restart -> Query "persist_test" |
-| **Expected** | On second startup, loads from data.ser, can find persist_test |
-| **Actual** | Step 14 verified: first startup shows "No save file found. Using initial data", saves data.ser on exit, restart shows "Data loaded successfully". Add/delete operations persist correctly |
+| **Input** | Delete data.json -> Start program (admin) -> Add player "persist_test" -> Exit (auto-save) -> Restart -> Query "persist_test" |
+| **Expected** | On second startup, loads from data.json, can find persist_test |
+| **Actual** | Step 14 verified: first startup shows "No save file found. Using initial data", saves data.json on exit, restart shows "Data loaded successfully". Add/delete operations persist correctly |
 | **Pass** | Pass |
 | **Bug** | None |
 

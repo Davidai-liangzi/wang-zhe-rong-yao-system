@@ -42,7 +42,7 @@ Select mode 2 to launch Swing GUI.
 | Leaderboard | Rank all players by composite score | All |
 | Data Management | Add/delete/modify players/heroes/equipment/teams/match records | Admin |
 | Authentication | Admin/Player dual-role login with permissions | All |
-| File Persistence | Load data.ser on startup, auto-save on exit (Java serialization) | Auto |
+| File Persistence | Load data.json on startup, auto-save on exit (JSON persistence) | Auto |
 | Interface | Identifiable interface implemented by all model classes | — |
 | Combat Simulation | Turn-based battle with crit/dodge/equipment bonuses | GUI+Console |
 | Recommendation Engine | Equipment recommendation (role-adjusted weights) + Hero recommendation (role gap analysis) | GUI |
@@ -58,7 +58,7 @@ Select mode 2 to launch Swing GUI.
 | Encapsulation | All fields private + getters/setters |
 | Collections | ArrayList, List, Stream API |
 | Exception Handling | try-with-resources, file I/O exception catching |
-| File I/O | ObjectOutputStream/ObjectInputStream serialization |
+| File I/O | JSON file read/write with Gson-style serialization |
 | Enums | HeroRole, EquipmentType, Role |
 | Abstract Class | Person (abstract base class) |
 
@@ -83,5 +83,5 @@ Select mode 2 to launch Swing GUI.
 1. Login system supports username + password authentication with 3 attempts for both admin and player roles
 2. Admin modify does not support editing hero skills or recommended equipment
 3. Match history participating heroes shown as first hero in pool (not actual pick)
-4. Serialized saves not backward-compatible after class structure changes
+4. JSON saves may not be backward-compatible after class structure changes
 5. Console display may have Chinese rendering issues in non-UTF-8 terminals
