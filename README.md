@@ -7,7 +7,7 @@ A Java OOP-based Honor of Kings information management system supporting player 
 
 Compile:
 ```bash
-javac -encoding UTF-8 -d out -sourcepath src src/Main.java
+javac -encoding UTF-8 -d out -sourcepath src/main/java src/main/java/Main.java
 ```
 
 Run (console):
