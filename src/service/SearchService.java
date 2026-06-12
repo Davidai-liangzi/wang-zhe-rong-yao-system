@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class SearchService {
 
-    /** Find player by username (case-insensitive) */
+    /** Find player by ID or username (case-insensitive) */
     public static void findPlayerByName(GameData data, String name) {
         if (data == null || data.getPlayers() == null) {
             System.out.println("Error: no data available.");
@@ -21,7 +21,7 @@ public class SearchService {
         List<Player> players = data.getPlayers();
 
         for (Player p : players) {
-            if (p.getUsername().equalsIgnoreCase(name)) {
+            if (p.getUsername().equalsIgnoreCase(name) || p.getId().equalsIgnoreCase(name)) {
                 System.out.println();
                 System.out.println("========== Player Info ==========");
                 System.out.println("Username: " + p.getUsername());
@@ -64,7 +64,7 @@ public class SearchService {
         System.out.println("Player not found: " + name);
     }
 
-    /** Find team by name, display members, average rank, total matches, win rate, top player */
+    /** Find team by ID or name, display members, average rank, total matches, win rate, top player */
     public static void findTeamByName(GameData data, String name) {
         if (data == null || data.getTeams() == null) {
             System.out.println("Error: no data available.");
@@ -78,7 +78,7 @@ public class SearchService {
 
         for (Team t : teams) {
             if (t.getTeamName() == null) continue;
-            if (t.getTeamName().equalsIgnoreCase(name) || t.getTeamName().contains(name)) {
+            if (t.getTeamName().equalsIgnoreCase(name) || t.getId().equalsIgnoreCase(name) || t.getTeamName().contains(name)) {
                 System.out.println();
                 System.out.println("========== Team Info ==========");
                 System.out.println("Team: " + t.getTeamName());
@@ -129,78 +129,92 @@ public class SearchService {
         }
         List<Hero> heroes = data.getHeroes();
 
+        // First pass: exact match only
         for (Hero h : heroes) {
-            if (h.getName().equalsIgnoreCase(name) || h.getName().contains(name)) {
-                System.out.println();
-                System.out.println("========== Hero Details ==========");
-                System.out.println("Name: " + h.getName());
-                System.out.println("Role: " + h.getHeroRole());
-                System.out.println("Base Stats: HP=" + h.getHp() + " ATK=" + h.getAtk() + " DEF=" + h.getDef());
-
-                if (!h.getSkills().isEmpty()) {
-                    System.out.println("Skills: " + String.join(", ", h.getSkills()));
-                } else {
-                    System.out.println("Skills: (none)");
-                }
-
-                // Compatible equipment (directly linked to hero)
-                System.out.println("--- Compatible Equipment ---");
-                List<Equipment> compEqs = h.getCompatibleEquipments();
-                if (compEqs.isEmpty()) {
-                    System.out.println("  (none)");
-                } else {
-                    for (Equipment e : compEqs) {
-                        System.out.println("  " + e.getName()
-                                + " [" + e.getType() + "]"
-                                + " ATK+" + e.getBonusAtk()
-                                + " DEF+" + e.getBonusDef()
-                                + " HP+" + e.getBonusHp()
-                                + " Price: " + e.getPrice());
-                    }
-                }
-
-                // Recommended equipment (filtered by hero role)
-                System.out.println("--- Recommended Equipment ---");
-                List<Equipment> eqs = data.getEquipments();
-                boolean foundEq = false;
-                for (Equipment e : eqs) {
-                    if (isSuitable(e.getType(), h.getHeroRole())) {
-                        System.out.println("  " + e.getName()
-                                + " [" + e.getType() + "]"
-                                + " ATK+" + e.getBonusAtk()
-                                + " DEF+" + e.getBonusDef()
-                                + " HP+" + e.getBonusHp()
-                                + " Price: " + e.getPrice());
-                        foundEq = true;
-                    }
-                }
-                if (!foundEq) {
-                    System.out.println("  (no matching equipment)");
-                }
-
-                // Players who own this hero
-                System.out.println("--- Owners ---");
-                List<Player> players = data.getPlayers();
-                boolean foundPlayer = false;
-                for (Player p : players) {
-                    for (Hero pHero : p.getHeroPool()) {
-                        if (pHero.getName().equals(h.getName())) {
-                            System.out.println("  " + p.getUsername() + " | Rank: " + p.getRank()
-                                    + " | WR: " + p.getWinRate() + "% | Team: " + (p.getTeam() != null ? p.getTeam().getTeamName() : "-"));
-                            foundPlayer = true;
-                            break;
-                        }
-                    }
-                }
-                if (!foundPlayer) {
-                    System.out.println("  (no owners)");
-                }
-                System.out.println("==============================");
+            if (h.getName().equalsIgnoreCase(name)) {
+                displayHeroDetails(data, h);
                 return;
+            }
+        }
+        // Second pass: contains (fuzzy) match — skip empty search
+        if (!name.isEmpty()) {
+            for (Hero h : heroes) {
+                if (h.getName().contains(name)) {
+                    displayHeroDetails(data, h);
+                    return;
+                }
             }
         }
 
         System.out.println("Hero not found: " + name);
+    }
+
+    private static void displayHeroDetails(GameData data, Hero h) {
+        System.out.println();
+        System.out.println("========== Hero Details ==========");
+        System.out.println("Name: " + h.getName());
+        System.out.println("Role: " + h.getHeroRole());
+        System.out.println("Base Stats: HP=" + h.getHp() + " ATK=" + h.getAtk() + " DEF=" + h.getDef());
+
+        if (!h.getSkills().isEmpty()) {
+            System.out.println("Skills: " + String.join(", ", h.getSkills()));
+        } else {
+            System.out.println("Skills: (none)");
+        }
+
+        // Compatible equipment (directly linked to hero)
+        System.out.println("--- Compatible Equipment ---");
+        List<Equipment> compEqs = h.getCompatibleEquipments();
+        if (compEqs.isEmpty()) {
+            System.out.println("  (none)");
+        } else {
+            for (Equipment e : compEqs) {
+                System.out.println("  " + e.getName()
+                        + " [" + e.getType() + "]"
+                        + " ATK+" + e.getBonusAtk()
+                        + " DEF+" + e.getBonusDef()
+                        + " HP+" + e.getBonusHp()
+                        + " Price: " + e.getPrice());
+            }
+        }
+
+        // Recommended equipment (filtered by hero role)
+        System.out.println("--- Recommended Equipment ---");
+        List<Equipment> eqs = data.getEquipments();
+        boolean foundEq = false;
+        for (Equipment e : eqs) {
+            if (isSuitable(e.getType(), h.getHeroRole())) {
+                System.out.println("  " + e.getName()
+                        + " [" + e.getType() + "]"
+                        + " ATK+" + e.getBonusAtk()
+                        + " DEF+" + e.getBonusDef()
+                        + " HP+" + e.getBonusHp()
+                        + " Price: " + e.getPrice());
+                foundEq = true;
+            }
+        }
+        if (!foundEq) {
+            System.out.println("  (no matching equipment)");
+        }
+
+        // Players who own this hero
+        System.out.println("--- Owners ---");
+        List<Player> players = data.getPlayers();
+        boolean foundPlayer = false;
+        for (Player p : players) {
+            for (Hero pHero : p.getHeroPool()) {
+                if (pHero.getName().equals(h.getName())) {
+                    System.out.println("  " + p.getUsername() + " | Rank: " + p.getRank()
+                            + " | WR: " + p.getWinRate() + "% | Team: " + (p.getTeam() != null ? p.getTeam().getTeamName() : "-"));
+                    foundPlayer = true;
+                    break;
+                }
+            }
+        }
+        if (!foundPlayer) {
+            System.out.println("  (no owners)");
+        }
+        System.out.println("==============================");
     }
 
     /** Equipment ranking by composite score */
@@ -229,7 +243,7 @@ public class SearchService {
         System.out.println("==============================");
     }
 
-    private static double equipScore(Equipment e) {
+    public static double equipScore(Equipment e) {
         return e.getBonusAtk() * 1.0 + e.getBonusDef() * 0.8 + e.getBonusHp() * 0.6 - e.getPrice() * 0.001;
     }
 
@@ -261,11 +275,11 @@ public class SearchService {
         System.out.println("==============================");
     }
 
-    private static double playerScore(Player p) {
+    public static double playerScore(Player p) {
         return p.getWinRate() * 1.0 + rankToScore(p.getRank()) * 5.0 + p.getMatchesPlayed() * 0.01;
     }
 
-    /** Match history — last 5 matches for a player or team */
+    /** Match history 闂?last 5 matches for a player or team */
     public static void showMatchHistory(GameData data, String input) {
         if (data == null || data.getPlayers() == null) {
             System.out.println("Error: no data available.");
@@ -337,12 +351,35 @@ public class SearchService {
             }
             System.out.println();
         }
+
+        // Hero pick rate: count how often each hero appears in the team's recent matches
+        System.out.println("--- Hero Pick Rate ---");
+        java.util.Map<String, Integer> pickCount = new java.util.HashMap<>();
+        for (MatchRecord m : matches) {
+            for (Player member : team.getMembers()) {
+                if (!member.getHeroPool().isEmpty()) {
+                    String heroName = member.getHeroPool().get(0).getName();
+                    pickCount.put(heroName, pickCount.getOrDefault(heroName, 0) + 1);
+                }
+            }
+        }
+        int totalMatches = matches.size();
+        if (totalMatches > 0 && !pickCount.isEmpty()) {
+            System.out.printf("%-20s %-6s %-8s\n", "Hero", "Picks", "Rate");
+            System.out.println("-------------------------------------");
+            pickCount.entrySet().stream()
+                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                    .forEach(e -> {
+                        double rate = (double) e.getValue() / totalMatches * 100;
+                        System.out.printf("%-20s %-6d %-8.1f%%\n", e.getKey(), e.getValue(), rate);
+                    });
+        }
         System.out.println("==============================");
     }
 
     // ==== Helpers ====
 
-    static int rankToScore(String rank) {
+    public static int rankToScore(String rank) {
         if (rank == null) return 1;
         switch (rank) {
             case "King": return 5;
@@ -354,15 +391,15 @@ public class SearchService {
         }
     }
 
-    static String scoreToRankName(double score) {
+    public static String scoreToRankName(double score) {
         if (score >= 4.5) return "King";
-        if (score >= 3.5) return "Diamond+";
+        if (score >= 3.5) return "Star";
         if (score >= 2.5) return "Diamond";
         if (score >= 1.5) return "Platinum";
         return "Gold";
     }
 
-    static boolean isSuitable(EquipmentType type, HeroRole role) {
+    public static boolean isSuitable(EquipmentType type, HeroRole role) {
         switch (role) {
             case WARRIOR:
             case ASSASSIN:

@@ -17,6 +17,10 @@ public class RecommendationService {
      * Formula: defense-type heroes prioritize DEF+HP, attack-type prioritize ATK.
      */
     public static void recommendEquipmentForHero(GameData data, String heroName) {
+        if (data == null || data.getHeroes() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
         Hero target = null;
         for (Hero h : data.getHeroes()) {
             if (h.getName().equalsIgnoreCase(heroName)) { target = h; break; }
@@ -28,7 +32,7 @@ public class RecommendationService {
 
         List<Equipment> candidates = target.getCompatibleEquipments();
         if (candidates.isEmpty()) {
-            // No compatible equipment — fall back to role-based recommendation
+            // No compatible equipment - fall back to role-based recommendation
             candidates = new ArrayList<>(data.getEquipments());
         }
 
@@ -60,7 +64,7 @@ public class RecommendationService {
     }
 
     /** Adjust equipment scoring weights based on hero role */
-    private static double equipScoreForHero(Equipment e, Hero h) {
+    public static double equipScoreForHero(Equipment e, Hero h) {
         double atkW = 1.0, defW = 0.8, hpW = 0.6;
         switch (h.getHeroRole()) {
             case WARRIOR:
@@ -84,8 +88,41 @@ public class RecommendationService {
     /**
      * Recommend unowned heroes for player (based on role coverage gaps)
      * If player lacks heroes of certain role, recommend unowned heroes of that role
+     * @return the sorted recommended heroes list (for testing)
      */
+    public static List<Hero> getRecommendedHeroesForPlayer(GameData data, String playerName) {
+        if (data == null || data.getPlayers() == null) {
+            return new ArrayList<>();
+        }
+        Player target = null;
+        for (Player p : data.getPlayers()) {
+            if (p.getUsername().equalsIgnoreCase(playerName)) { target = p; break; }
+        }
+        if (target == null) return new ArrayList<>();
+
+        Set<HeroRole> ownedRoles = new HashSet<>();
+        Set<String> ownedNames = new HashSet<>();
+        for (Hero h : target.getHeroPool()) {
+            ownedRoles.add(h.getHeroRole());
+            ownedNames.add(h.getName());
+        }
+
+        Set<HeroRole> missingRoles = new HashSet<>(Arrays.asList(HeroRole.values()));
+        missingRoles.removeAll(ownedRoles);
+
+        return data.getHeroes().stream()
+                .filter(h -> missingRoles.contains(h.getHeroRole()))
+                .filter(h -> !ownedNames.contains(h.getName()))
+                .sorted((a, b) -> Integer.compare(
+                        b.getHp() + b.getAtk() + b.getDef(),
+                        a.getHp() + a.getAtk() + a.getDef()))
+                .collect(Collectors.toList());
+    }
+
+    /** Prints hero recommendations to console (delegates to getRecommendedHeroesForPlayer) */
     public static void recommendHeroesForPlayer(GameData data, String playerName) {
+        List<Hero> candidates = getRecommendedHeroesForPlayer(data, playerName);
+
         Player target = null;
         for (Player p : data.getPlayers()) {
             if (p.getUsername().equalsIgnoreCase(playerName)) { target = p; break; }
@@ -95,26 +132,14 @@ public class RecommendationService {
             return;
         }
 
-        // Collect owned roles
         Set<HeroRole> ownedRoles = new HashSet<>();
         Set<String> ownedNames = new HashSet<>();
         for (Hero h : target.getHeroPool()) {
             ownedRoles.add(h.getHeroRole());
             ownedNames.add(h.getName());
         }
-
-        // Find missing roles
         Set<HeroRole> missingRoles = new HashSet<>(Arrays.asList(HeroRole.values()));
         missingRoles.removeAll(ownedRoles);
-
-        // Recommend heroes of missing roles (sorted by HP+ATK total)
-        List<Hero> candidates = data.getHeroes().stream()
-                .filter(h -> missingRoles.contains(h.getHeroRole()))
-                .filter(h -> !ownedNames.contains(h.getName()))
-                .sorted((a, b) -> Integer.compare(
-                        b.getHp() + b.getAtk() + b.getDef(),
-                        a.getHp() + a.getAtk() + a.getDef()))
-                .collect(Collectors.toList());
 
         System.out.println();
         System.out.println("========== Hero Recommendation ==========");

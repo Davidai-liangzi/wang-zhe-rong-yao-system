@@ -322,3 +322,81 @@ AI created CombatSimulator (damage formula max(1,ATK-DEF×0.6)±5 random, 15% cr
 
 ### My Decision
 **Accepted**. All three extra features verified: CombatSimulator — Lu Bu defeated Li Bai in 5 rounds; RecommendationService — recommended 10 missing-role heroes for p14_zongqing; GameGUI — compiles and runs. All extra feature tests 6/6 passed. This project now covers all of Section 10.1~10.4, 4 extra credit items total.
+
+---
+
+## Prompt 20
+**Date/Time**: 2026-06-12 14:30
+**Tool/Model**: Trae IDE (AI Coding Assistant) - Reviewer A
+**Agent Role**: Cross-Check Reviewer (Reviewer A)
+**Related Commit**: [AI-CrossCheck] Independent code review — full codebase (20 Java files, ~2500 LOC)
+
+### My Prompt
+/cross-check Target Language: Java. Task: As a senior Java code review expert, conduct a 100% coverage independent review from three perspectives with priority highlighting:
+- Perspective 1: Logic flaws, boundary conditions, potential NPE or concurrency issues.
+- Perspective 2: Performance bottlenecks (e.g. repeated calculations in loops), code smells (e.g. overly long methods, duplicate code), security (e.g. SQL injection risk).
+- Perspective 3: Maintainability (e.g. poor naming, design violating open-closed principle).
+Review scope: entire project all code.
+
+### AI Response Summary
+Reviewer A (Trae/Claude) independently reviewed all 20 Java source files and produced a 30-issue report:
+- **Perspective 1 (10 issues)**: Identified missing null data checks in RecommendationService and CombatSimulator, MatchRecord.getName() NPE risk with null team, fuzzy match ambiguity in findHeroByName (empty string matches all), equipScoreForHero ignoring equipment type, duplicate player lookup in recommendHeroesForPlayer, CombatSimulator 500-turn limit without draw handling.
+- **Perspective 2 (10 issues)**: Flagged hardcoded plaintext passwords ("123"/"admin"), Service layer tight coupling to System.out, overly long methods (showMatchHistory ~80 lines, dataManageMenu ~150 lines), magic numbers scattered across classes, missing data validation in Model setters, mutating internal list exposure in GameData.
+- **Perspective 3 (10 issues)**: Named "Equipments" grammatical error, Team having both getName() and getTeamName() redundancy, TestRunner/RobustTest duplicate test infrastructure, all static utility classes violating OCP, Scanner resource leak in error paths, Hero.getCompatibleEquipments() returning mutable references, DataManager.nextId concurrency unsafe.
+
+### My Decision
+**Independent Report — To Be Compared**. This is the first of two independent cross-check reviews. The report identifies 6 critical, 17 medium, and 7 minor issues. Top 3: plaintext passwords, System.out coupling, inconsistent null checks. Awaiting Reviewer B's independent report for cross-comparison.
+
+---
+
+## Prompt 21
+**Date/Time**: 2026-06-12 15:00
+**Tool/Model**: GLM-5.1 - Reviewer B
+**Agent Role**: Cross-Check Reviewer (Reviewer B)
+**Related Commit**: [AI-CrossCheck] Second independent review + cross-comparison analysis
+
+### My Prompt
+/cross-check Target Language: Java. Task: As a senior Java code review expert, conduct a 100% coverage independent review from the same three perspectives. After completion, compare with Reviewer A's report and mark divergent entries.
+
+### AI Response Summary
+Reviewer B (GLM-5.1) independently reviewed the same codebase and produced a 32-issue report:
+- **Perspective 1 (12 issues)**: Confirmed null data defense gaps in CombatSimulator/RecommendationService, MatchRecord NPE. Also discovered unique issues: Team not overriding equals/hashCode causing serialization match failures, nextId %02d format overflow beyond ID 99, Main sc.nextInt() without InputMismatchException handling, DataManager null data defense missing across all CRUD methods.
+- **Perspective 2 (10 issues)**: Confirmed password hardcoding, System.out coupling, long methods, magic numbers. Additionally found: DataManager no cascading cleanup on delete (dangling references), attack() and calculateDamage() duplicate logic, Player-Team circular serialization risk.
+- **Perspective 3 (10 issues)**: Confirmed Equipment naming, Team dual getName, test infrastructure duplication, static class anti-pattern. Additionally flagged: Person.getName() returning username with ambiguous semantics, DataInitializer variable reuse (eq/h reassignment), Main/GameGUI missing package declarations.
+
+### My Decision
+**Cross-Comparison Result**:
+- **20 consensus issues** — both reviewers independently found (e.g., null defense gaps, System.out coupling, Equipments naming)
+- **6 unique to Reviewer A** — data validation missing, concurrent risks (static Random, nextId), test exception info loss, Scanner resource leak
+- **10 unique to Reviewer B** — Team equals/hashCode serialization bug (CRITICAL), nextId format overflow, DataManager cascading delete gap, attack/calculateDamage duplication, package declaration missing
+- **7 key divergent items** analyzed with judgment calls (e.g., D9 Team equals/hashCode confirmed as real high-risk bug Reviewer A missed; D14 cascading delete also confirmed critical)
+
+---
+
+## Prompt 22
+**Date/Time**: 2026-06-12 15:15
+**Tool/Model**: Trae IDE (AI Coding Assistant) - Reviewer A (Consolidation)
+**Agent Role**: Cross-Check Reviewer (Consolidator)
+**Related Commit**: [AI-CrossCheck] Merge reports, generate priority-ranked fix list, update agent-log.md and prompts.md
+
+### My Prompt
+Combine the two review reports, generate a priority-consolidated issue list (P0/P1/P2), and sync content to prompts.md and agent-log.md following the existing file format.
+
+### AI Response Summary
+Generated a merged 12-item priority list:
+| Priority | Issue | Source |
+|----------|-------|--------|
+| P0 | Team not overriding equals/hashCode — serialization match failure | Reviewer B only |
+| P0 | DataManager delete without cascading cleanup — dangling references | Reviewer B only |
+| P0 | Hardcoded plaintext passwords ("123"/"admin") | Both |
+| P1 | Inconsistent null data defense across Service layer | Both + B supplement |
+| P1 | Service layer tightly coupled to System.out | Both |
+| P1 | CombatSimulator 500-turn limit without draw handling | Both |
+| P1 | Fuzzy match ambiguity in findHeroByName/findTeamByName | Both |
+| P1 | attack() and calculateDamage() duplicate logic | Reviewer B only |
+| P2 | nextId %02d format overflow | Reviewer B only |
+| P2 | Missing data validation (negative values, out-of-range) | Reviewer A only |
+| P2 | GameGUI capture() System.setOut global side effect | Both |
+
+### My Decision
+**Accepted**. The consolidated report is the final output of the cross-check review. P0 fixes are mandatory before production use. P1 strongly recommended. P2 should be addressed when time permits. The review covers all 3 perspectives × 2 reviewers = full 100% coverage. Agent-log.md updated with a new "Cross-Check Reviewer Agent" section documenting the full process.

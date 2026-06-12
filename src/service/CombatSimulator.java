@@ -23,6 +23,10 @@ public class CombatSimulator {
      * Simulate a battle between two heroes (with their respective equipment)
      */
     public static void simulate(GameData data, String heroName1, String heroName2) {
+        if (data == null || data.getHeroes() == null) {
+            System.out.println("Error: no data available.");
+            return;
+        }
         Hero h1 = findHero(data, heroName1);
         Hero h2 = findHero(data, heroName2);
         if (h1 == null || h2 == null) {
@@ -63,7 +67,7 @@ public class CombatSimulator {
                 h2.getName(), hp2, atk2, def2, h2.getHeroRole());
         System.out.println("-----------------------------");
 
-        while (hp1 > 0 && hp2 > 0) {
+        while (hp1 > 0 && hp2 > 0 && turn < 500) {
             turn++;
             System.out.println("--- Round " + turn + " ---");
 
@@ -85,41 +89,53 @@ public class CombatSimulator {
         }
 
         System.out.println("-----------------------------");
-        String winner = hp1 > 0 ? h1.getName() : h2.getName();
-        String loser = hp1 > 0 ? h2.getName() : h1.getName();
-        int winnerRemain = hp1 > 0 ? hp1 : hp2;
-        int winnerMax = hp1 > 0 ? maxHp1 : maxHp2;
+        if (hp1 > 0 && hp2 > 0) {
+            System.out.println("Result: DRAW! Both survived 500 rounds.");
+            System.out.println("HP: " + h1.getName() + "=" + hp1 + "/" + maxHp1
+                    + ", " + h2.getName() + "=" + hp2 + "/" + maxHp2);
+        } else {
+            String winner = hp1 > 0 ? h1.getName() : h2.getName();
+            String loser = hp1 > 0 ? h2.getName() : h1.getName();
+            int winnerRemain = hp1 > 0 ? hp1 : hp2;
+            int winnerMax = hp1 > 0 ? maxHp1 : maxHp2;
 
-        System.out.println("Result: " + winner + " wins!");
-        System.out.println("HP Remaining: " + winnerRemain + "/" + winnerMax);
+            System.out.println("Result: " + winner + " wins!");
+            System.out.println("HP Remaining: " + winnerRemain + "/" + winnerMax);
+        }
         System.out.println("Total Rounds: " + turn);
         System.out.println("==============================");
     }
 
-    private static int attack(String attacker, int atk, int targetDef, int targetHp,
-                               boolean hasAtkEq, boolean hasDefEq) {
-        // Base damage
+    /**
+     * Deterministic damage calculation for testing.
+     * Pass a seeded Random to get reproducible results.
+     * Returns the damage dealt (never prints to console).
+     */
+    public static int calculateDamage(int atk, int targetDef, boolean hasAtkEq, boolean hasDefEq, Random rng) {
         int baseDmg = Math.max(1, atk - (int)(targetDef * 0.6));
-        int dmg = baseDmg + RNG.nextInt(11) - 5; // ±5 random
+        int dmg = baseDmg + rng.nextInt(11) - 5;
 
-        // Critical hit
-        boolean crit = false;
         int critChance = hasAtkEq ? 20 : 15;
-        if (RNG.nextInt(100) < critChance) {
+        if (rng.nextInt(100) < critChance) {
             dmg = (int)(dmg * 1.5);
-            crit = true;
         }
 
-        // Dodge
         int dodgeChance = hasDefEq ? 15 : 10;
-        if (RNG.nextInt(100) < dodgeChance) {
-            System.out.println(attacker + " attacks → dodged! (0)");
+        if (rng.nextInt(100) < dodgeChance) {
             return 0;
         }
 
-        dmg = Math.max(1, dmg);
-        String critMsg = crit ? " CRITICAL!" : "";
-        System.out.println(attacker + " attacks → " + dmg + " damage" + critMsg);
+        return Math.max(1, dmg);
+    }
+
+    private static int attack(String attacker, int atk, int targetDef, int targetHp,
+                               boolean hasAtkEq, boolean hasDefEq) {
+        int dmg = calculateDamage(atk, targetDef, hasAtkEq, hasDefEq, RNG);
+        if (dmg == 0) {
+            System.out.println(attacker + " attacks -> dodged! (0)");
+        } else {
+            System.out.println(attacker + " attacks -> " + dmg + " damage");
+        }
         return dmg;
     }
 

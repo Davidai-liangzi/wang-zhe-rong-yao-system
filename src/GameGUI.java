@@ -16,9 +16,20 @@ public class GameGUI extends JFrame {
     private JTabbedPane tabs;
 
     public GameGUI() {
-        data = DataInitializer.initAll();
+        data = FilePersistence.loadData();
+        if (data == null) {
+            data = DataInitializer.initAll();
+        }
         setTitle("Honor of Kings IMS");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                FilePersistence.saveData(data);
+                dispose();
+                System.exit(0);
+            }
+        });
         setSize(800, 600);
         setLocationRelativeTo(null);
 
@@ -28,6 +39,7 @@ public class GameGUI extends JFrame {
         tabs.addTab("Hero Details", heroPanel());
         tabs.addTab("Equip Ranking", equipPanel());
         tabs.addTab("Leaderboard", leaderboardPanel());
+        tabs.addTab("Match History", matchHistoryPanel());
         tabs.addTab("Combat Sim", combatPanel());
         tabs.addTab("Recommend", recommendPanel());
 
@@ -126,6 +138,30 @@ public class GameGUI extends JFrame {
         return panel;
     }
 
+    // ========== Match History ==========
+    private JPanel matchHistoryPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5,5));
+        JPanel top = new JPanel(new FlowLayout());
+        JTextField input = new JTextField(12);
+        JButton btn = new JButton("Search");
+        JTextArea result = new JTextArea(18, 60);
+        result.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        result.setEditable(false);
+
+        btn.addActionListener(e -> {
+            String name = input.getText().trim();
+            if (name.isEmpty()) { result.setText("Please enter a player or team name"); return; }
+            result.setText(captureMatchHistory(name));
+        });
+
+        top.add(new JLabel("Player/Team:"));
+        top.add(input);
+        top.add(btn);
+        panel.add(top, BorderLayout.NORTH);
+        panel.add(new JScrollPane(result), BorderLayout.CENTER);
+        return panel;
+    }
+
     // ========== Combat Simulation ==========
     private JPanel combatPanel() {
         JPanel panel = new JPanel(new BorderLayout(5,5));
@@ -198,10 +234,10 @@ public class GameGUI extends JFrame {
         try {
             action.run();
         } catch (Exception ex) {
-            System.setOut(old);
             return "Error: " + ex.getMessage();
+        } finally {
+            System.setOut(old);
         }
-        System.setOut(old);
         return baos.toString();
     }
 
@@ -227,6 +263,10 @@ public class GameGUI extends JFrame {
 
     private String captureCombat(String h1, String h2) {
         return capture(() -> CombatSimulator.simulate(data, h1, h2));
+    }
+
+    private String captureMatchHistory(String input) {
+        return capture(() -> SearchService.showMatchHistory(data, input));
     }
 
     private String captureHeroRecommend(String player) {

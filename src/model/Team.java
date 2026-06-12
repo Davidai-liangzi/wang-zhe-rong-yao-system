@@ -36,4 +36,17 @@ public class Team implements Serializable, Identifiable {
     public void setWins(int wins) { this.wins = wins; }
     public int getLosses() { return losses; }
     public void setLosses(int losses) { this.losses = losses; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Team team = (Team) o;
+        return id != null && id.equals(team.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }

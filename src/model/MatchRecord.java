@@ -25,7 +25,11 @@ public class MatchRecord implements Serializable, Identifiable {
 
     @Override
     public String getId() { return id; }
-    public String getName() { return teamA.getTeamName() + " vs " + teamB.getTeamName(); }
+    @Override
+    public String getName() {
+        if (teamA == null || teamB == null) return "Unknown Match";
+        return teamA.getTeamName() + " vs " + teamB.getTeamName();
+    }
     public void setId(String id) { this.id = id; }
 
     public Team getTeamA() { return teamA; }
