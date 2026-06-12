@@ -3,6 +3,7 @@
 *.jar
 *.war
 data.ser
+data.json
 out/
 .DS_Store
 Thumbs.db
