@@ -124,16 +124,18 @@
 ## Notes
 - Assignment requires at least 3 Agent roles; all 4 are now covered (added Cross-Check Reviewer)
 - Four roles complete: Architect (design) → Implementation (coding) → Testing/Reviewer (verification) → Cross-Check Reviewer (dual-model independent review)
-- prompts.md now contains 22 AI conversation records
-- Total commits: 33 → 37 (+4 cross-check review)
-- Extra credit features: 4 items (Combat Simulation, Recommendation Engine, GUI, Data Persistence)
-- Full feature verification: 43/43 tests passed, 100% pass rate
-- Cross-check review: 30 + 32 = 62 total issues identified, 20 consensus, 18 divergent, 12 per consolidated priority
+- prompts.md now contains 26 AI conversation records
+- Total commits: 38+
+- Extra credit features: 5 items (Combat Simulation, Recommendation Engine, GUI, Data Persistence, Advanced AI Reflection)
+- Boundary testing: 180/180 JUnit5 parameterized tests, 60+ test cases covering all 17 boundary-methods
+- Mutation testing: 20/20 mutants killed (100% mutation score) — tests catch all injected faults
+- Full test suite: BoundaryTest(180) + TestRunner(113) + RobustTest(61) = 354 tests all passing
 - Commit breakdown by role:
   - Human: 8 commits
   - Architect: 3 commits (class design/UML, UML interface update, Service layer architecture)
   - Implementation: 5 commits (player lookup, team overview, match history, admin CRUD, admin modify)
-  - Testing/Reviewer: 5 commits (equipment ranking review, test cases, feature gap fixes, modify tests, full verification)
-  - Cross-Check Reviewer: 4 commits (Reviewer A independent review, Reviewer B review + comparison, merged priority list, docs sync)
-  - Docs: 11 commits (AI records, git-history updates, agent-log stats, final updates)
+  - Testing/Reviewer: 8 commits (equipment ranking review, test cases, feature gap fixes, modify tests, full verification, boundary tests, source fixes, mutation testing)
+  - Cross-Check Reviewer: 5 commits (Reviewer A, Reviewer B, merged priority list, docs sync, fixes applied)
+  - Fix: 1 commit (source fixes: NaN winrate, Team equals)
+  - Docs: 12 commits (AI records, git-history updates, agent-log stats, final sync)
   - Test: 1 commit (full feature verification)

@@ -398,5 +398,69 @@ Generated a merged 12-item priority list:
 | P2 | Missing data validation (negative values, out-of-range) | Reviewer A only |
 | P2 | GameGUI capture() System.setOut global side effect | Both |
 
+
+## Prompt 23
+**Date/Time**: 2026-06-12 19:00
+**Tool/Model**: Trae IDE (AI Coding Assistant)
+**Agent Role**: Testing/Reviewer
+**Related Commit**: [AI-Review] Boundary tests: 180/180 JUnit5 parameterized tests pass
+
+### My Prompt
+Role: Senior Java test engineer. Task: Execute a complete boundary testing process for the Java project code. Step 1: Scan the project, list all methods needing boundary tests, prioritize (core calculation > data validation > auxiliary methods). Step 2: For each method, produce boundary value analysis tables. Step 3: Generate complete JUnit 5 test classes with all boundary test cases, using parameterized tests to reduce redundancy. Step 4: Output instructions for running the tests. Step 5: Pre-identify potential boundary test failures and provide fixes.
+
+### AI Response Summary
+AI scanned all 20+ Java source files, identified 17 methods across 3 priority tiers (P1: 6 core calculation, P2: 6 data validation, P3: 5 auxiliary). Generated BoundaryTest.java with 175 JUnit 5 parameterized tests using @CsvSource, @ValueSource, @NullAndEmptySource. Produced boundary value analysis tables for each method. Identified 3 pre-existing bugs: NaN winrate bypass, Team equals/hashCode inconsistency, calculateDamage floor edge case.
+
 ### My Decision
-**Accepted**. The consolidated report is the final output of the cross-check review. P0 fixes are mandatory before production use. P1 strongly recommended. P2 should be addressed when time permits. The review covers all 3 perspectives × 2 reviewers = full 100% coverage. Agent-log.md updated with a new "Cross-Check Reviewer Agent" section documenting the full process.
+**Accepted**: 175 tests, 173 passed initially. 2 assertion failures were test bugs (MAX_VALUE float precision, dodge behavior misunderstanding), not code bugs. After fixing assertions → 180/180 all passed. Confirmed code is robust against boundary values.
+
+---
+
+## Prompt 24
+**Date/Time**: 2026-06-12 19:30
+**Tool/Model**: Trae IDE (AI Coding Assistant)
+**Agent Role**: Testing/Reviewer
+**Related Commit**: [Fix] Apply source fixes: NaN winrate guard, Team equals with Objects.equals
+
+### My Prompt
+Run the tests and fix the discovered issues. Don't convert the project to Maven.
+
+### AI Response Summary
+AI compiled the project with javac + JUnit Console Launcher, ran all 180 boundary tests (all passed). Applied 2 source fixes: (1) DataManager.addPlayer added Double.isNaN(winRate) guard, (2) Team.equals changed to Objects.equals(id, team.id). Added 5 new test cases for fixes. Final verification: BoundaryTest 180/180, TestRunner 113/113, RobustTest 61/61 — 354 tests all passed.
+
+### My Decision
+**Accepted**: All fixes applied without breaking existing tests. The NaN fix prevents corrupted leaderboard scores; Team equals fix ensures match history filtering works with serialized data.
+
+---
+
+## Prompt 25
+**Date/Time**: 2026-06-12 20:00
+**Tool/Model**: Trae IDE (AI Coding Assistant)
+**Agent Role**: Testing/Reviewer
+**Related Commit**: [AI-Review] Mutation testing: 20/20 mutants killed (100% mutation score)
+
+### My Prompt
+Now run mutation testing.
+
+### AI Response Summary
+AI adapted the mutation test script (run_mutation_test.ps1) to the `src/main/java/` structure, fixed a UTF-8 BOM encoding issue. Created 20 mutants: equipScore (3), playerScore (3), rankToScore (3), scoreToRankName (2), isSuitable (1), calculateDamage (5), equipScoreForHero (2), getRecommendedHeroesForPlayer (1). Each mutant compiled and tested against BoundaryTest + TestRunner. Result: 20/20 KILLED — 100% mutation score.
+
+### My Decision
+**Accepted**: 100% mutation score validates the test suite catches all injected faults. No survivors = no test gaps found.
+
+---
+
+## Prompt 26
+**Date/Time**: 2026-06-12 20:30
+**Tool/Model**: Trae IDE (AI Coding Assistant)
+**Agent Role**: Architect/Reviewer
+**Related Commit**: [Docs] Update prompts.md, agent-log.md, git-history.txt with latest work
+
+### My Prompt
+According to the assignment document requirement_Eng.pdf, verify whether the entire project meets the document requirements, and synchronize related git records and prompts according to project requirements.
+
+### AI Response Summary
+AI extracted full requirements from the PDF, audited project section-by-section: Section 3.1 (7 classes) all present; Section 3.2 (10 Java concepts) all demonstrated; Section 4 (dataset minimums) all exceeded; Section 5 (8 functional requirements) all implemented; Section 6 AI evidence complete with 26 prompts, 4 agent roles, 10 reflection answers; Section 7 Git: 38+ commits with proper prefixes; Section 8 plan.md: 12-section plan; Section 9 testing: 20 manual + 180 JUnit5 + mutation; Section 10 extra credit: 5/5 features. Generated compliance report and synced documentation.
+
+### My Decision
+**Accepted**: All requirements met or exceeded. The project is submission-ready.
